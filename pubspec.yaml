@@ -1,0 +1,20 @@
+name: translation_parser
+version: 1.0.0
+description: >-
+  A tiny, simple and complete tool to ensure your translations
+  are always correct grammatically and orthographically through
+  the use of user-defined expressions
+author: Dorian Oszczęda <vxern@wordcollector.co.uk>
+homepage: https://pub.dev/packages/translation_parser
+repository: https://github.com/vxern/translation_parser
+#documentation:
+issue_tracker: https://github.com/vxern/translation_parser/issues
+
+publish_to: https://pub.dev
+
+environment:
+  sdk: '>=2.13.3 <3.0.0'
+
+dependencies:
+  enum_to_string: ^2.0.1
+  sprint: ^1.0.1
