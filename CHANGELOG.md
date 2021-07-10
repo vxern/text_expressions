@@ -1,3 +1,7 @@
 ## 1.0.0
 
-- Initial version, created by Stagehand
+- Created `text_expressions` from code extracted from the `WordCollector` application
+
+## 1.0.1
+
+- Added `In` and `NotIn` operations

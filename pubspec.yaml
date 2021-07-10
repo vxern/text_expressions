@@ -1,5 +1,5 @@
 name: text_expressions
-version: 1.0.0
+version: 1.0.1
 description: >-
   A tiny, simple and complete tool to supercharge your string files
   with dynamically-parsed expressions

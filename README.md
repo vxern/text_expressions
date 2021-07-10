@@ -43,13 +43,27 @@ Expressions may be nested, and there is virtually no limit to how many cases an 
 
 The parser supports several comparison operations, which can be used to match a parameter to a case.
 
-- Equals *
+String-exclusive operations:
+
 - StartsWith
 - EndsWith
 - Contains
+
+Indifferent operations:
+
+- Equals *
+- In
+- NotIn
+
+Number-exclusive operations:
+
 - Greater
 - GreaterOrEqual
 - Lesser
 - LesserOrEqual
 
-\* If no operation has been defined, the operation will default to 'Equal'
+Other:
+
+- Default
+
+\* If no operation has been defined, the operation will default to 'Equals'

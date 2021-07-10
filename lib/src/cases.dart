@@ -62,38 +62,57 @@ class Case {
       return true;
     }
 
-    return parameters.any((parameter) {
-      if (numericOperations.contains(operation)) {
-        if (!Utils.areNumeric(condition, parameter)) {
+    // If the parameter describes a range of numbers or letters
+    if (setOperations.contains(operation)) {
+      if (parameters[0].contains('-')) {
+        parameters.addAll(parameters[0].split('-'));
+        parameters.removeAt(0);
+      }
+
+      final isIn = Utils.isInRange(condition, parameters[0], parameters[1]);
+
+      switch (operation) {
+        case Operation.In:
+          return isIn;
+        case Operation.NotIn:
+          return !isIn;
+        default:
           return false;
-        }
+      }
+    }
 
-        final subject = double.parse(condition);
-        final object = double.parse(parameter);
-
+    return parameters.any((parameter) {
+      if (!numericOperations.contains(operation)) {
         switch (operation) {
-          case Operation.Greater:
-            return subject > object;
-          case Operation.GreaterOrEqual:
-            return subject >= object;
-          case Operation.Lesser:
-            return subject < object;
-          case Operation.LesserOrEqual:
-            return subject <= object;
+          case Operation.Equals:
+            return parameter == condition;
+          case Operation.StartsWith:
+            return condition.startsWith(parameter);
+          case Operation.EndsWith:
+            return condition.endsWith(parameter);
+          case Operation.Contains:
+            return condition.contains(parameter);
           default:
             return false;
         }
       }
 
+      if (!Utils.areNumeric(condition, parameter)) {
+        return false;
+      }
+
+      final subject = double.parse(condition);
+      final object = double.parse(parameter);
+
       switch (operation) {
-        case Operation.Equals:
-          return parameter == condition;
-        case Operation.StartsWith:
-          return condition.startsWith(parameter);
-        case Operation.EndsWith:
-          return condition.endsWith(parameter);
-        case Operation.Contains:
-          return condition.contains(parameter);
+        case Operation.Greater:
+          return subject > object;
+        case Operation.GreaterOrEqual:
+          return subject >= object;
+        case Operation.Lesser:
+          return subject < object;
+        case Operation.LesserOrEqual:
+          return subject <= object;
         default:
           return false;
       }
@@ -103,11 +122,18 @@ class Case {
 
 /// The instruction associated with a choice
 enum Operation {
-  Default, // Fallback value
-  Equals, // The default command for when no command is present
+  // String-exclusive operations
   StartsWith,
   EndsWith,
   Contains,
+
+  // String/Number-indifferent operations
+  In,
+  NotIn,
+  Default, // Fallback value
+  Equals, // The default command for when no operation has been specified by the user
+
+  // Number-exclusive operations
   Greater,
   GreaterOrEqual,
   Lesser,
@@ -119,4 +145,9 @@ const List<Operation> numericOperations = const [
   Operation.GreaterOrEqual,
   Operation.Lesser,
   Operation.LesserOrEqual,
+];
+
+const List<Operation> setOperations = const [
+  Operation.In,
+  Operation.NotIn,
 ];
