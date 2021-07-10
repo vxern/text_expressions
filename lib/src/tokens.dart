@@ -1,4 +1,4 @@
-import 'package:translation_parser/src/symbols.dart';
+import 'package:text_expressions/src/symbols.dart';
 
 extension BreakIntoTokens on String {
   List<Token> toTokens() {
@@ -38,10 +38,11 @@ extension BreakIntoTokens on String {
           break;
         case SymbolType.externalClosed:
           tokenType = TokenType.External;
-          continue;
+          continue closed;
         case SymbolType.expressionClosed:
           tokenType ??= TokenType.Expression;
-          continue;
+          continue closed;
+        closed:
         case SymbolType.parameterClosed:
           tokenType ??= TokenType.Parameter;
 
@@ -53,16 +54,17 @@ extension BreakIntoTokens on String {
           nestingLevel--;
           break;
         case SymbolType.choiceIntroducer:
+          if (nestingLevel == 0 && lastChoicePosition == 0) {
+            lastChoicePosition = symbol.position + 1;
+          }
+          break;
         case SymbolType.choiceDivider:
           tokenType = TokenType.Case;
 
           if (nestingLevel == 0 && lastChoicePosition != 0) {
-            if (symbol.type == SymbolType.choiceDivider) {
-              content = this.substring(lastChoicePosition, symbol.position).trim();
-            }
+            content = this.substring(lastChoicePosition, symbol.position).trim();
             lastChoicePosition = symbol.position + 1;
           }
-
           break;
         case SymbolType.endOfString:
           if (lastSymbolPosition == this.length) {

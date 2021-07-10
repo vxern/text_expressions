@@ -1,9 +1,9 @@
 import 'package:sprint/sprint.dart';
 
-import 'package:translation_parser/src/cases.dart';
-import 'package:translation_parser/src/symbols.dart';
-import 'package:translation_parser/src/tokens.dart';
-import 'package:translation_parser/src/utils.dart';
+import 'package:text_expressions/src/cases.dart';
+import 'package:text_expressions/src/symbols.dart';
+import 'package:text_expressions/src/tokens.dart';
+import 'package:text_expressions/src/utils.dart';
 
 class Parser {
   final Sprint log = Sprint('Parser');
@@ -11,35 +11,51 @@ class Parser {
   /// Used as a fallback 'translation' for an inexistent key
   static const String placeholder = '?';
 
-  /// Map of keys and their corresponding translations
-  Map<String, String> translations = {};
-
-  /// Map of expressions resolved by the parser
+  /// Map of keys and their corresponding expressions
   Map<String, String> expressions = {};
 
   /// Map of parameters passed into the parser when processing a translation
   Map<String, dynamic> namedParameters = {};
 
   /// List of parameters used for positional parameter checking
-  List<dynamic> positionalParameters = [];
+  Set<dynamic> positionalParameters = Set();
+
+  Parser({bool quietMode = false}) {
+    log.quietMode = quietMode;
+  }
 
   /// Load translations and - optionally - expressions
   void load({
-    required Map<String, String> translations,
-    Map<String, String> expressions = const {},
+    required Map<String, String> expressions,
   }) {
-    this.translations = translations;
     this.expressions = expressions;
+  }
+
+  String getTranslation(
+    String key, {
+    Map<String, dynamic> namedParameters = const {},
+    List<dynamic>? positionalParameters,
+  }) {
+    if (!hasTranslationFor(key)) {
+      log.error('No translation found for key $key');
+      return placeholder;
+    }
+
+    return parseString(
+      expressions[key]!,
+      namedParameters: namedParameters,
+      positionalParameters: positionalParameters,
+    );
   }
 
   /// Takes a string, tokenises it, parses the tokens and returns the result
   String parseString(
     String target, {
-    Map<String, dynamic> parameters = const {},
+    Map<String, dynamic> namedParameters = const {},
     List<dynamic>? positionalParameters,
   }) {
-    this.namedParameters = parameters;
-    this.positionalParameters = positionalParameters ?? parameters.values.toList();
+    this.namedParameters.addAll(namedParameters);
+    this.positionalParameters.addAll(positionalParameters ?? namedParameters.values.toList());
 
     return target.toTokens().map((token) => parseToken(token)).join();
   }
@@ -64,12 +80,12 @@ class Parser {
   /// string from [expressions] or [translations], resolves the expression if
   /// necessary, and returns the result
   String parseExternal(Token token) {
-    if (!expressions.containsKey(token.content) && !translations.containsKey(token.content)) {
+    if (!expressions.containsKey(token.content) && !expressions.containsKey(token.content)) {
       log.error("Could not parse an external string: <${token.content}> does not exist!");
       return placeholder;
     }
 
-    final String fetchedString = expressions[token.content] ?? translations[token.content] ?? placeholder;
+    final String fetchedString = expressions[token.content] ?? expressions[token.content] ?? placeholder;
 
     if (!fetchedString.startsWith(Symbols.expressionOpen) && !fetchedString.endsWith(Symbols.expressionClosed)) {
       return parseString(fetchedString);
@@ -105,7 +121,7 @@ class Parser {
     }
 
     if (!namedParameters.containsKey(token.content)) {
-      log.error('Could not parse a parameter designator:'
+      log.error('Could not parse a parameter designator: '
           "{${token.content}} hadn't been supplied into the string");
       return placeholder;
     }
@@ -120,12 +136,12 @@ class Parser {
       return placeholder;
     }
 
-    return positionalParameters[position].toString();
+    return positionalParameters.elementAt(position).toString();
   }
 
   /// Takes a `Token` of type `TokenType.Text` and returns its [content]
   String parseText(Token token) => token.content;
 
   /// Whether the parser has a translation corresponding with the key
-  bool hasTranslationFor(String key) => translations.containsKey(key);
+  bool hasTranslationFor(String key) => expressions.containsKey(key);
 }

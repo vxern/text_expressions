@@ -1,8 +1,8 @@
 import 'package:enum_to_string/enum_to_string.dart';
 
-import 'package:translation_parser/src/symbols.dart';
-import 'package:translation_parser/src/tokens.dart';
-import 'package:translation_parser/src/utils.dart';
+import 'package:text_expressions/src/symbols.dart';
+import 'package:text_expressions/src/tokens.dart';
+import 'package:text_expressions/src/utils.dart';
 
 extension BreakIntoCases on List<Token> {
   List<Case> toCases() {
@@ -13,23 +13,29 @@ extension BreakIntoCases on List<Token> {
       final parts = token.content.split(Symbols.caseResultDivider);
 
       // The first part of a case is the command
-      final commandRaw = parts.removeAt(0);
+      final operationRaw = parts.removeAt(0);
 
       // The other parts of a case are the result
       final resultRaw = parts.join(Symbols.caseResultDivider);
 
-      var command = Operation.Equals;
+      var operation = Operation.Equals;
       final parameters = <String>[];
       final result = resultRaw;
 
-      if (commandRaw.contains(Symbols.parameterOpen)) {
-        final commandParts = commandRaw.split(Symbols.parameterOpen);
-        command = EnumToString.fromString(Operation.values, commandParts[0]) ?? Operation.Default;
+      if (operationRaw.contains(Symbols.argumentOpen)) {
+        final commandParts = operationRaw.split(Symbols.argumentOpen);
+        operation = EnumToString.fromString(Operation.values, commandParts[0]) ?? Operation.Default;
         parameters.addAll(commandParts[1].substring(0, commandParts[1].length - 1).split(','));
+      } else {
+        parameters.add(operationRaw);
+      }
+
+      if (operationRaw == 'Default') {
+        operation = Operation.Default;
       }
 
       cases.add(Case(
-        operation: command,
+        operation: operation,
         parameters: parameters,
         result: result,
       ));
@@ -52,11 +58,11 @@ class Case {
   });
 
   bool matchesCondition(String condition) {
-    return parameters.any((parameter) {
-      if (operation == Operation.Default) {
-        return true;
-      }
+    if (operation == Operation.Default) {
+      return true;
+    }
 
+    return parameters.any((parameter) {
       if (numericOperations.contains(operation)) {
         if (!Utils.areNumeric(condition, parameter)) {
           return false;
@@ -108,7 +114,7 @@ enum Operation {
   LesserOrEqual,
 }
 
-List<Operation> numericOperations = [
+const List<Operation> numericOperations = const [
   Operation.Greater,
   Operation.GreaterOrEqual,
   Operation.Lesser,
