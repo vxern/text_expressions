@@ -4,7 +4,7 @@ description: >-
   A tiny, simple and complete tool to supercharge your string files
   with dynamically-parsed expressions
 author: Dorian Oszczęda <vxern@wordcollector.co.uk>
-homepage: https://pub.dev/packages/text_expressions
+homepage: https://github.com/vxern/text_expressions
 repository: https://github.com/vxern/text_expressions
 #documentation:
 issue_tracker: https://github.com/vxern/text_expressions/issues
