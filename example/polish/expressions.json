@@ -1,0 +1,3 @@
+{
+    "ordinalMasculineSingularInstrumental": "[{number} ~ 1:pierwszym/2:drugim/3:trzecim/4:czwartym/5:piątym/GreaterOrEqual(6):{number}-[{number} ~ EndsWith(2,3):im/Default:ym]]"
+}

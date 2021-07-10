@@ -1,0 +1,6 @@
+{
+    "userGreeting": "Congratulations! You're the <ordinal> developer to try out `translation_parser`!",
+    "tooYoung": "You are too young to use this parser",
+    "suitableAge": "You may use this parser because you're of suitable age",
+    "tooOld": "You are too old to understand this parser"
+}
