@@ -20,14 +20,12 @@ class Parser {
   /// List of parameters used for positional parameter checking
   Set<dynamic> positionalParameters = Set();
 
-  Parser({bool quietMode = false}) {
+  Parser({bool quietMode = true}) {
     log.quietMode = quietMode;
   }
 
   /// Load translations and - optionally - expressions
-  void load({
-    required Map<String, String> expressions,
-  }) {
+  void load({required Map<String, String> expressions}) {
     this.expressions = expressions;
   }
 
@@ -54,8 +52,16 @@ class Parser {
     Map<String, dynamic> namedParameters = const {},
     List<dynamic>? positionalParameters,
   }) {
-    this.namedParameters.addAll(namedParameters);
-    this.positionalParameters.addAll(positionalParameters ?? namedParameters.values.toList());
+    if (namedParameters.isNotEmpty) {
+      this.namedParameters
+        ..clear()
+        ..addAll(namedParameters);
+    }
+
+    if (positionalParameters != null && positionalParameters.isNotEmpty) {
+      this.positionalParameters.clear();
+    }
+    this.positionalParameters..addAll(positionalParameters ?? namedParameters.values.toList());
 
     return target.toTokens().map((token) => parseToken(token)).join();
   }
