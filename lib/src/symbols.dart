@@ -1,82 +1,83 @@
+/// List of symbols' characters used and understood by the `Lexer`
 class Symbols {
-  static const String externalOpen = '<';
-  static const String externalClosed = '>';
-  static const String expressionOpen = '[';
-  static const String expressionClosed = ']';
-  static const String parameterOpen = '{';
-  static const String parameterClosed = '}';
-  static const String caseIntroducer = '~';
-  static const String caseDivider = '/';
-  static const String caseResultDivider = ':';
-  static const String argumentOpen = '(';
-  static const String argumentClosed = ')';
+  /// Opening bracket of an external phrase
+  static const ExternalOpen = '<';
+
+  /// Closing bracket of an external phrase
+  static const ExternalClosed = '>';
+
+  /// Opening bracket of an expression
+  static const ExpressionOpen = '[';
+
+  /// Closing bracket of an expression
+  static const ExpressionClosed = ']';
+
+  /// Opening bracket of a parameter designator
+  static const ParameterOpen = '{';
+
+  /// Closing bracket of a parameter designator
+  static const ParameterClosed = '}';
+
+  /// Separates the control variable and the choices inside an expression
+  static const ChoiceIntroducer = '~';
+
+  /// Separates the choices inside an expression
+  static const ChoiceSeparator = '/';
+
+  /// Separates the condition for matching a choice with the control variable
+  /// and the result of the matching
+  static const ChoiceResultDivider = ':';
+
+  /// Opening bracket of the arguments used by the operation in constructing a
+  /// condition
+  static const ArgumentOpen = '(';
+
+  /// Closing bracket of the arguments used by the operation in constructing a
+  /// condition
+  static const ArgumentClosed = ')';
 }
 
-extension BreakIntoSymbols on String {
-  List<Symbol> toSymbols() {
-    final List<Symbol> symbols = [];
+/// Enumerator representation of characters used in tokenising a string
+enum SymbolType {
+  /// Opening bracket of an external phrase
+  ExternalOpen,
 
-    for (int position = 0; position < this.length; position++) {
-      final SymbolType? symbolType;
+  /// Closing bracket of an external phrase
+  ExternalClosed,
 
-      switch (this[position]) {
-        case Symbols.externalOpen:
-          symbolType = SymbolType.externalOpen;
-          break;
-        case Symbols.externalClosed:
-          symbolType = SymbolType.externalClosed;
-          break;
-        case Symbols.expressionOpen:
-          symbolType = SymbolType.expressionOpen;
-          break;
-        case Symbols.expressionClosed:
-          symbolType = SymbolType.expressionClosed;
-          break;
-        case Symbols.parameterOpen:
-          symbolType = SymbolType.parameterOpen;
-          break;
-        case Symbols.parameterClosed:
-          symbolType = SymbolType.parameterClosed;
-          break;
-        case Symbols.caseIntroducer:
-          symbolType = SymbolType.choiceIntroducer;
-          break;
-        case Symbols.caseDivider:
-          symbolType = SymbolType.choiceDivider;
-          break;
-        default:
-          symbolType = null;
-          break;
-      }
+  /// Opening bracket of an expression
+  ExpressionOpen,
 
-      if (symbolType != null) {
-        symbols.add(Symbol(symbolType, position));
-      }
-    }
+  /// Closing bracket of an expression
+  ExpressionClosed,
 
-    symbols.add(Symbol(SymbolType.endOfString, this.length - 1));
+  /// Opening bracket of a parameter designator
+  ParameterOpen,
 
-    return symbols;
-  }
+  /// Closing bracket of a parameter designator
+  ParameterClosed,
+
+  /// Separates the control variable and the choices inside an expression
+  ChoiceIntroducer,
+
+  /// Separates the choices inside an expression
+  ChoiceSeparator,
+
+  /// Symbol indicating the end of a string
+  EndOfString,
 }
 
-/// A representation of a `Symbol` significant for breaking a string into `Tokens`
+/// Representation of a character significant to the tokenisation of a string by
+/// splitting it into its `Token` components by the `Lexer`
 class Symbol {
+  /// The [type] of this `Symbol` which describes what `Token` this symbol is a
+  /// component of
   final SymbolType type;
+
+  /// Zero-based index of the `Symbol` inside the parent string
   final int position;
 
+  /// Creates an instance of `Symbol` assigning a [type] and its [position]
+  /// inside the string which is being parsed
   const Symbol(this.type, this.position);
-}
-
-/// The type of a `Symbol` which decides how the string will be broken into `Tokens`
-enum SymbolType {
-  externalOpen,
-  externalClosed,
-  expressionOpen,
-  expressionClosed,
-  parameterOpen,
-  parameterClosed,
-  choiceIntroducer,
-  choiceDivider,
-  endOfString,
 }
