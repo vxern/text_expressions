@@ -1,21 +1,21 @@
-import 'package:text_expressions/src/cases.dart';
-
-const charMap = 'abcdefghijklmnopqrstuvwxyz';
-
-class Utils {
-  static bool isInteger(String target) => int.tryParse(target) != null;
-  static bool isNumeric(String target) => double.tryParse(target) != null;
-  static bool areNumeric(dynamic first, dynamic second) => Utils.isNumeric(first) && Utils.isNumeric(second);
-  static bool isInRange(String subject, String minimum, String maximum) {
-    // If the parameter is in an alphabetical range
-    if (!Utils.areNumeric(minimum, maximum)) {
-      return subject == minimum || subject == maximum || charMap.split(minimum)[1].split(maximum)[0].contains(subject);
+/// Extension with a superior implementation of the problematic `.firstWhere()`,
+/// which defaults to throwing a `StateError`, rather than returning `null`
+extension NullSafety<E> on Iterable<E> {
+  /// Returns the first element that satisfies the given predicate [test]
+  ///
+  /// If no elements satisfy [test], the result of invoking the [orElse]
+  /// function is returned
+  ///
+  /// Unlike `.firstWhere()`, this function defaults to returning `null`
+  E? firstWhereOrNull(bool Function(E) test, {E Function()? orElse}) {
+    for (final element in this) {
+      if (test(element)) {
+        return element;
+      }
     }
-
-    final subjectNum = double.parse(subject);
-    final minimumNum = double.parse(minimum);
-    final maximumNum = double.parse(maximum);
-
-    return minimumNum <= subjectNum && subjectNum <= maximumNum;
+    if (orElse != null) {
+      return orElse();
+    }
+    return null;
   }
 }
