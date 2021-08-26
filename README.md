@@ -2,16 +2,16 @@
 
 ## Table of Contents
 
-- [The Syntax](#the-syntax)
-- [Case Operations](#case-operations)
+  - [The Syntax](#the-syntax)
+  - [Case Operations](#case-operations)
 
 ## The Syntax 
 
-#### Parameter
+### Parameter
 
 A parameter may be introduced through the use of `{}`, which mark a parameter template. A parameter template can contain either a named parameter (through the use of its name) or a positional one (through the use of its index).
 
-###### Examples
+#### Examples
 
 `Your name is {name} and your age is {age}.`
 
@@ -33,37 +33,37 @@ Expressions may be nested, and there is virtually no limit to how many cases an 
 
 `/` separates cases and their results
 
-###### Examples
+#### Examples
 
 `[{age} ~ Lesser(18):You are underage!/Default:You are free to drink.]`
 
 `[{temperature} ~ Lesser(15):Too cold./Lesser(30):Temperate./Default:It's too hot!]`
 
-## Case Operations
+### Case Operations
 
 The parser supports several comparison operations, which can be used to match a parameter to a case.
 
 String-exclusive operations:
 
-- StartsWith
-- EndsWith
-- Contains
+  - StartsWith
+  - EndsWith
+  - Contains
 
 Indifferent operations:
 
-- Equals *
-- In
-- NotIn
+  - Equals *
+  - In
+  - NotIn
 
 Number-exclusive operations:
 
-- Greater
-- GreaterOrEqual
-- Lesser
-- LesserOrEqual
+  - Greater
+  - GreaterOrEqual
+  - Lesser
+  - LesserOrEqual
 
 Other:
 
-- Default
+  - Default
 
 \* If no operation has been defined, the operation will default to 'Equals'
