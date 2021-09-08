@@ -29,30 +29,39 @@ class Parser {
   }
 
   /// Loads a new set of [phrases] into the parser, clearing the previous set
-  void load({required Map<String, String> phrases}) => phrases
+  void load({required Map<String, String> phrases}) => this.phrases
     ..clear()
     ..addAll(phrases);
 
-  /// Takes [target], tokenises it, parses each token and returns the
+  /// Takes [phrase], tokenises it, parses each `Token` and returns the
   /// accumulation of the parsed tokens as a string
-  String parse(
-    String target, {
-    Map<String, dynamic> named = const <String, dynamic>{},
-    Set<dynamic> positional = const <dynamic>{},
-  }) =>
-      lexer
-          .getTokens(target)
-          .map((token) => token.parse(Arguments(named, positional)))
-          .join();
+  String parse(String phrase, Arguments arguments) =>
+      lexer.getTokens(phrase).map((token) => token.parse(arguments)).join();
+
+  /// Takes [key], retrieves the phrase associated with [key] and parses it
+  String parseKey(
+    String key, {
+    Map<String, Object> named = const <String, Object>{},
+    Set<Object> positional = const <Object>{},
+  }) {
+    if (!phrases.containsKey(key)) {
+      log.warn("Could not parse phrase: The key '$key' does not exist.");
+      return Parser.fallback;
+    }
+
+    final phrase = phrases[key]!;
+
+    return parse(phrase, Arguments(named, positional));
+  }
 }
 
 /// Container for parameters passed into the parser
 class Arguments {
   /// Parameters whise values are to be matched by their name (key)
-  final Map<String, dynamic> named;
+  final Map<String, Object> named;
 
   /// Parameters to be matched by their position in the `Set`
-  final Set<dynamic> positional;
+  final Set<Object> positional;
 
   /// Creates an instance of a container for arguments passed into the parser
   const Arguments(this.named, this.positional);
