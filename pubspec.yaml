@@ -5,7 +5,7 @@ version: 1.1.0
 
 description: >-
   Tiny, simple and complete tool to supercharge your string files
-  with dynamically-parsed expressions. RegEx-free.
+  with dynamic user-defined expressions.
 
 homepage: https://github.com/wordcollector/text_expressions
 repository: https://github.com/wordcollector/text_expressions
@@ -16,7 +16,7 @@ environment:
 
 dependencies:
   enum_as_string: ^1.0.0
-  sprint: ^1.0.2+2
+  sprint: ^1.0.2+3
 
 dev_dependencies:
   words: ^0.0.1+2
