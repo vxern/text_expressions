@@ -5,10 +5,10 @@ final Translation translation = Translation();
 void main() {
   translation.load(Language.english);
 
-  print(translation.getString('ageCheck', parameters: {'age': 10}));
-  print(translation.getString('ageCheck', parameters: {'age': 17}));
-  print(translation.getString('ageCheck', parameters: {'age': 68}));
-  print(translation.getString('ageCheck', parameters: {'age': 40}));
+  print(translation.translate('ageCheck', named: {'age': 10}));
+  print(translation.translate('ageCheck', named: {'age': 17}));
+  print(translation.translate('ageCheck', named: {'age': 68}));
+  print(translation.translate('ageCheck', named: {'age': 40}));
   testGreetings();
 
   translation.load(Language.polish);
@@ -19,8 +19,8 @@ void main() {
 }
 
 void testGreetings() {
-  print(translation.getString('userGreeting', parameters: {'number': 1}));
-  print(translation.getString('userGreeting', parameters: {'number': 4}));
-  print(translation.getString('userGreeting', parameters: {'number': 11}));
-  print(translation.getString('userGreeting', parameters: {'number': 23}));
+  print(translation.translate('userGreeting', named: {'number': 1}));
+  print(translation.translate('userGreeting', named: {'number': 4}));
+  print(translation.translate('userGreeting', named: {'number': 11}));
+  print(translation.translate('userGreeting', named: {'number': 23}));
 }
