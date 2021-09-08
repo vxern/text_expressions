@@ -1,4 +1,4 @@
 {
-    "ordinal": "[{number} ~ 1:first/2:second/3:third/4:fourth/5:fifth/GreaterOrEqual(6):{number}[{number} ~ EndsWith(11,12,13):th/EndsWith(1):st/EndsWith(2):nd/EndsWith(3):rd/Default:th]]",
-    "ageCheck": "[{age} ~ LesserOrEqual(10):<tooYoung>/LesserOrEqual(50):<suitableAge>/Default:<tooOld>]"
+  "ordinal": "[{number} ~ 1:first/2:second/3:third/4:fourth/5:fifth/GreaterOrEqual(6):{number}[{number} ~ EndsWith(11,12,13):th/EndsWith(1):st/EndsWith(2):nd/EndsWith(3):rd/Default:th]]",
+  "ageCheck": "[{age} ~ LesserOrEqual(10):<tooYoung>/LesserOrEqual(50):<suitableAge>/Default:<tooOld>]"
 }

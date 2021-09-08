@@ -1,3 +1,3 @@
 {
-    "ordinalMasculine": "[{number} ~ 1:primul/2:al doilea/3:al treilea/4:al patrulea/5:al cincilea/greaterOrEqual(6):al {number}-a]"
+  "ordinalMasculine": "[{number} ~ 1:primul/2:al doilea/3:al treilea/4:al patrulea/5:al cincilea/GreaterOrEqual(6):al {number}-a]"
 }
