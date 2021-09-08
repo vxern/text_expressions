@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
 
-class Utils {
-  static Map<String, String> readJson(String fileName) {
-    return Map<String, String>.from(jsonDecode(File(fileName).readAsStringSync()));
-  }
+Map<String, String> readJson(String fileName) =>
+    (jsonDecode(File(fileName).readAsStringSync()) as Map<String, dynamic>)
+        .map<String, String>(
+      (key, dynamic value) => MapEntry(
+        key,
+        value.toString(),
+      ),
+    );
 
-  static Map<String, String> readJsons(List<String> fileNames) {
-    return fileNames.map((fileName) => readJson(fileName)).reduce((a, b) => {...a, ...b});
-  }
-}
+Map<String, String> readJsons(List<String> fileNames) =>
+    fileNames.map(readJson).reduce((a, b) => {...a, ...b});
