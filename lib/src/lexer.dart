@@ -43,19 +43,18 @@ class Lexer {
         case SymbolType.ExternalOpen:
         case SymbolType.ExpressionOpen:
         case SymbolType.ParameterOpen:
-          if (nestingLevel != 0 || lastChoicePosition != 0) {
-            break;
+          tokenType = TokenType.Text;
+
+          if (nestingLevel == 0 && lastChoicePosition == 0) {
+            final precedingString =
+                target.substring(lastSymbolPosition, symbol.position);
+            if (precedingString.isNotEmpty) {
+              content = precedingString;
+            }
+            lastSymbolPosition = symbol.position + 1;
           }
 
           nestingLevel++;
-          tokenType = TokenType.Text;
-
-          final precedingString =
-              target.substring(lastSymbolPosition, symbol.position);
-          if (precedingString.isNotEmpty) {
-            content = precedingString;
-          }
-          lastSymbolPosition = symbol.position + 1;
           break;
         case SymbolType.ExternalClosed:
           tokenType = TokenType.External;
@@ -65,13 +64,14 @@ class Lexer {
           continue closed;
         closed:
         case SymbolType.ParameterClosed:
-          nestingLevel--;
           tokenType ??= TokenType.Parameter;
 
           if (nestingLevel == 1 && lastChoicePosition == 0) {
             content = target.substring(lastSymbolPosition, symbol.position);
             lastSymbolPosition = symbol.position + 1;
           }
+
+          nestingLevel--;
           break;
         case SymbolType.ChoiceIntroducer:
           if (nestingLevel == 0 && lastChoicePosition == 0) {
@@ -79,14 +79,13 @@ class Lexer {
           }
           break;
         case SymbolType.ChoiceSeparator:
-          if (nestingLevel != 0 || lastChoicePosition == 0) {
-            break;
-          }
           tokenType = TokenType.Choice;
 
-          content =
-              target.substring(lastChoicePosition, symbol.position).trim();
-          lastChoicePosition = symbol.position + 1;
+          if (nestingLevel == 0 && lastChoicePosition != 0) {
+            content =
+                target.substring(lastChoicePosition, symbol.position).trim();
+            lastChoicePosition = symbol.position + 1;
+          }
           break;
         case SymbolType.EndOfString:
           if (lastSymbolPosition == target.length) {
@@ -178,10 +177,9 @@ class Lexer {
 
       if (conditionRaw.contains(Symbols.ArgumentOpen)) {
         final commandParts = conditionRaw.split(Symbols.ArgumentOpen);
-        if (commandParts.length > 1) {
+        if (commandParts.length > 2) {
           log.severe('''
-Could not parse choice: Expected a command and optional arguments 
-inside parentheses, but found multiple parentheses.''');
+Could not parse choice: Expected a command and optional arguments inside parentheses, but found multiple parentheses.''');
         }
 
         final command = commandParts[0];
@@ -192,14 +190,18 @@ inside parentheses, but found multiple parentheses.''');
         )!;
 
         final argumentsString =
-            commandParts[1].substring(commandParts[1].length - 1);
+            commandParts[1].substring(0, commandParts[1].length - 1);
         arguments.addAll(
           argumentsString.contains(',')
               ? argumentsString.split(',')
               : argumentsString.split('-'),
         );
       } else {
-        operation = Operation.Equals;
+        operation = Enum.fromString(
+          Operation.values,
+          conditionRaw,
+          orDefault: Operation.Equals,
+        )!;
         arguments.add(conditionRaw);
       }
 
@@ -216,40 +218,43 @@ inside parentheses, but found multiple parentheses.''');
   /// `Condition` which must be met for a `Choice` to be matched to the control
   /// variable of an expression
   Condition<String> constructCondition(
-      Operation operation, List<String> arguments) {
+    Operation operation,
+    List<String> arguments,
+  ) {
     switch (operation) {
       case Operation.Default:
         return (_) => true;
 
       case Operation.StartsWith:
-        return (var control) => control.startsWith(arguments[0]);
+        return (var control) => arguments.any(control.startsWith);
       case Operation.EndsWith:
-        return (var control) => control.endsWith(arguments[0]);
+        return (var control) => arguments.any(control.endsWith);
       case Operation.Contains:
-        return (var control) => control.contains(arguments[0]);
+        return (var control) => arguments.any(control.contains);
       case Operation.Equals:
-        return (var control) => control == arguments[0];
+        return (var control) =>
+            arguments.any((argument) => control == argument);
 
       case Operation.Greater:
       case Operation.GreaterOrEqual:
       case Operation.Lesser:
       case Operation.LesserOrEqual:
-        if (!isNumeric(arguments[0])) {
+        final argumentsAreNumeric = arguments.map(isNumeric);
+        if (argumentsAreNumeric.contains(false)) {
           log.severe('''
-Could not construct mathematical condition: '${Enum.asString(operation)}' 
-requires that its argument be numeric. The provided argument 
-'${arguments[0]}' is not numeric, and thus not parsable as a 
-number.
+Could not construct mathematical condition: '${Enum.asString(operation)}' requires that its argument(s) be numeric.
+One of the provided arguments $arguments is not numeric, and thus is not parsable as a number.
 
-To prevent runtime exceptions, the condition has been set to evaluate to `false`.
-''');
+To prevent runtime exceptions, the condition has been set to evaluate to `false`.''');
           return (_) => false;
         }
 
-        final argumentAsNumber = num.parse(arguments[0]);
-        final mathematicalCondition = constructMathematicalCondition(
-          operation,
-          argumentAsNumber,
+        final argumentsAsNumbers = arguments.map(num.parse);
+        final mathematicalConditions = argumentsAsNumbers.map(
+          (argument) => constructMathematicalCondition(
+            operation,
+            argument,
+          ),
         );
 
         return (var control) {
@@ -257,7 +262,9 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
             return false;
           }
           final controlVariableAsNumber = num.parse(control);
-          return mathematicalCondition(controlVariableAsNumber);
+          return mathematicalConditions.any(
+            (condition) => condition.call(controlVariableAsNumber),
+          );
         };
 
       case Operation.In:
@@ -273,8 +280,8 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
             numberOfNumericArguments != arguments.length;
 
         if (isTypeMismatch) {
-          log.warning('Could not construct a set condition: '
-              'All arguments must be of the same type.');
+          log.severe('''
+Could not construct a set condition: All arguments must be of the same type.''');
           return (_) => false;
         }
 
