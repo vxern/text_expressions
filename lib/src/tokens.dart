@@ -41,29 +41,31 @@ class Token {
   /// expression, it is first parsed, and then returned
   String parseExternal(Arguments arguments) {
     if (!lexer.parser.phrases.containsKey(content)) {
-      lexer.log.severe(
-          "Could not parse external phrase: a phrase with the key '<$content>' "
-          'does not exist.');
+      lexer.log.severe('''
+Could not parse external phrase: The key '<$content>' does not exist.''');
       return Parser.fallback;
     }
 
-    final phrase = lexer.parser.phrases.containsKey(content)
-        ? lexer.parser.phrases[content].toString()
-        : Parser.fallback;
-
-    if (isExternal(phrase)) {
-      return lexer.parser.parse(phrase);
+    if (!lexer.parser.phrases.containsKey(content)) {
+      return Parser.fallback;
     }
 
-    // Remove the surrounding brackets to leave just the content
-    final phraseContent = phrase.substring(1, phrase.length - 1);
+    final phrase = lexer.parser.phrases[content].toString();
 
-    return parseExpression(arguments, phraseContent);
+    if (!isExpression(phrase)) {
+      return phrase;
+    }
+
+    return parseExpression(arguments, phrase);
   }
 
   /// Resolves the expression, and returns the result
   String parseExpression(Arguments arguments, [String? phrase]) {
-    final tokens = lexer.getTokens(phrase ?? content);
+    // Remove the surrounding brackets to leave just the content
+    final phraseContent =
+        phrase != null ? phrase.substring(1, phrase.length - 1) : content;
+
+    final tokens = lexer.getTokens(phraseContent);
 
     final controlVariable = tokens.removeAt(0).parse(arguments);
     final choices = lexer.getChoices(tokens);
@@ -72,12 +74,11 @@ class Token {
         choices.firstWhereOrNull((choice) => choice.isMatch(controlVariable));
 
     if (matchedChoice != null) {
-      return lexer.parser.parse(matchedChoice.result);
+      return lexer.parser.parse(matchedChoice.result, arguments);
     }
 
-    lexer.log.severe(
-        "Could not parse expression: The control variable '$controlVariable' "
-        'does not match any choice defined inside the expression.');
+    lexer.log.severe('''
+Could not parse expression: The control variable '$controlVariable' does not match any choice defined inside the expression.''');
     return Parser.fallback;
   }
 
@@ -88,10 +89,8 @@ class Token {
     }
 
     if (!arguments.named.containsKey(content)) {
-      lexer.log.severe(
-          'Could not parse a named parameter: An argument with the name '
-          "$content' hadn't been supplied to the parser at the time of parsing "
-          'the named parameter of the same name.');
+      lexer.log.severe('''
+Could not parse a named parameter: An argument with the name '$content' hadn't been supplied to the parser at the time of parsing the named parameter of the same name.''');
       return Parser.fallback;
     }
 
@@ -103,17 +102,14 @@ class Token {
     final index = int.parse(content);
 
     if (index < 0) {
-      lexer.log.severe(
-          'Could not parse a positional parameter: The index must not be '
-          'negative.');
+      lexer.log.severe('''
+Could not parse a positional parameter: The index must not be negative.''');
       return Parser.fallback;
     }
 
     if (index >= arguments.positional.length) {
-      lexer.log.severe(
-          'Could not parse a positional parameter: Attempted to access an '
-          'argument at position $index, but '
-          '${arguments.positional.length} argument/s were supplied.');
+      lexer.log.severe('''
+Could not parse a positional parameter: Attempted to access an argument at position $index, but ${arguments.positional.length} argument(s) were supplied.''');
       return Parser.fallback;
     }
 
@@ -123,9 +119,15 @@ class Token {
   /// Returns this token's [content]
   String parseText() => content;
 
-  /// Checks if [phrase] is an external phrase, which needs to be 'included'
-  /// in the main phrase
+  /// Checks if [phrase] is an external phrase, which needs to be 'included' in
+  /// the main phrase
   bool isExternal(String phrase) =>
+      phrase.startsWith(Symbols.ExternalOpen) &&
+      phrase.endsWith(Symbols.ExternalClosed);
+
+  /// Checks if [phrase] is an expression, which needs to be 'included' in the
+  /// main phrase
+  bool isExpression(String phrase) =>
       phrase.startsWith(Symbols.ExpressionOpen) &&
       phrase.endsWith(Symbols.ExpressionClosed);
 
