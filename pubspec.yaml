@@ -4,8 +4,9 @@ name: text_expressions
 version: 1.1.0
 
 description: >-
-  Tiny, simple and complete tool to supercharge your string files
-  with dynamic user-defined expressions.
+  A tiny, simple and complete tool to ensure your translations are 
+  always grammatically and orthographically correct through the use 
+  of user-defined expressions.
 
 homepage: https://github.com/wordcollector/text_expressions
 repository: https://github.com/wordcollector/text_expressions
