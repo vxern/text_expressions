@@ -1,4 +1,3 @@
-
 ## 1.1.0
 
   - Updated license bearer from 'Dorian Oszczęda' to 'WordCollector'.
