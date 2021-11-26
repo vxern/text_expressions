@@ -2,14 +2,16 @@
 
 ## Table of Contents
 
-  - [The Syntax](#the-syntax)
-  - [Case Operations](#case-operations)
+- [The Syntax](#the-syntax)
+- [Case Operations](#case-operations)
 
-## The Syntax 
+## The Syntax
 
 ### Parameter
 
-A parameter may be introduced through the use of `{}`, which mark a parameter template. A parameter template can contain either a named parameter (through the use of its name) or a positional one (through the use of its index).
+A parameter may be introduced through the use of `{}`, which mark a parameter
+template. A parameter template can contain either a named parameter (through the
+use of its name) or a positional one (through the use of its index).
 
 #### Examples
 
@@ -19,9 +21,13 @@ A parameter may be introduced through the use of `{}`, which mark a parameter te
 
 #### Expression
 
-An expression works a little like a switch statement. A parameter is passed into an expression and checked against the defined cases. If the parameter matches a case, its result is returned.
+An expression works a little like a switch statement. A parameter is passed into
+an expression and checked against the defined cases. If the parameter matches a
+case, its result is returned.
 
-Expressions may be nested, and there is virtually no limit to how many cases an expression can contain. However, for readability's sake, it is best to keep expressions small and understandable.
+Expressions may be nested, and there is virtually no limit to how many cases an
+expression can contain. However, for readability's sake, it is best to keep
+expressions small and understandable.
 
 `[{parameter} ~ case1:result1/case2:result2/(...)]`
 
@@ -41,29 +47,32 @@ Expressions may be nested, and there is virtually no limit to how many cases an 
 
 ### Case Operations
 
-The parser supports several comparison operations, which can be used to match a parameter to a case.
+The parser supports several comparison operations, which can be used to match a
+parameter to a case.
 
 String-exclusive operations:
 
-  - StartsWith
-  - EndsWith
-  - Contains
+- `StartsWith`
+- `EndsWith`
+- `Contains`
 
 Indifferent operations:
 
-  - Equals *
-  - In
-  - NotIn
+- `Equals` *
+- `In`
+- `NotIn`
+- `InRange`
+- `NotInRange`
 
 Number-exclusive operations:
 
-  - Greater
-  - GreaterOrEqual
-  - Lesser
-  - LesserOrEqual
+- `Greater`
+- `GreaterOrEqual`
+- `Lesser`
+- `LesserOrEqual`
 
 Other:
 
-  - Default
+- `Default`
 
-\* If no operation has been defined, the operation will default to 'Equals'
+* If no operation has been defined, the operation will default to 'Equals'

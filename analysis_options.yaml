@@ -1,5 +1,1 @@
 include: package:words/core.yaml
-
-linter:
-  rules:
-    constant_identifier_names: false
