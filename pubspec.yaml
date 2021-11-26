@@ -20,4 +20,4 @@ dependencies:
   sprint: ^1.0.2+3
 
 dev_dependencies:
-  words: ^2.0.0+1
+  words: ^0.0.2+1
