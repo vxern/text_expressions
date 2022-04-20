@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Made full stops at the end of documentation comments consistent.
+
 ## 1.1.0+1
 
 - Updated:

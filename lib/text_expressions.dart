@@ -1,5 +1,5 @@
 /// Supercharge your simple, static text with powerful, dynamically resolved
-/// expressions
+/// expressions.
 library text_expressions;
 
 export 'src/parser.dart';

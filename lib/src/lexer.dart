@@ -7,34 +7,34 @@ import 'package:text_expressions/src/symbols.dart';
 import 'package:text_expressions/src/tokens.dart';
 
 /// The lexer handles the breaking of strings into singular `Tokens`s and
-/// `Symbol`s for the purpose of fine-grained control over parsing
+/// `Symbol`s for the purpose of fine-grained control over parsing.
 class Lexer {
-  /// Instance of `Sprint` for logging messages specific to the `Lexer`
+  /// Instance of `Sprint` for logging messages specific to the `Lexer`.
   final Sprint log;
 
-  /// Instance of the `Parser` by which this `Lexer` is employed
+  /// Instance of the `Parser` by which this `Lexer` is employed.
   final Parser parser;
 
-  /// Creates an instance of `Lexer`, passing in the parser it is employed by
+  /// Creates an instance of `Lexer`, passing in the parser it is employed by.
   Lexer(this.parser, {bool quietMode = false})
       : log = Sprint('Lexer', quietMode: quietMode);
 
-  /// Extracts a `List` of `Token`s from [target]
+  /// Extracts a `List` of `Tokens` from [target].
   List<Token> getTokens(String target) {
     final tokens = <Token>[];
 
     // In order to break the string down correctly into tokens, the parser
-    // must see exactly where each symbol lies in the string
+    // must see exactly where each symbol lies in the string.
     final symbols = getSymbols(target);
 
-    // How deeply nested the current symbol being parsed is
+    // How deeply nested the current symbol being parsed is.
     var nestingLevel = 0;
-    // Used for obtaining substrings of the subject string
+    // Used for obtaining substrings of the subject string.
     var lastSymbolPosition = 0;
-    // Used for obtaining substrings of choices
+    // Used for obtaining substrings of choices.
     var lastChoicePosition = 0;
 
-    // Iterate over symbols, finding and extracting tokens
+    // Iterate over symbols, finding and extracting tokens.
     for (final symbol in symbols) {
       TokenType? tokenType;
       String? content;
@@ -111,7 +111,7 @@ class Lexer {
     return tokens;
   }
 
-  /// Extracts a `List` of `Symbol`s from [target]
+  /// Extracts a `List` of `Symbols` from [target].
   List<Symbol> getSymbols(String target) {
     final symbols = <Symbol>[];
 
@@ -155,20 +155,20 @@ class Lexer {
     return symbols;
   }
 
-  /// Extracts a `List` of `Choice`s from [tokens]
+  /// Extracts a `List` of `Choices` from [tokens].
   List<Choice> getChoices(List<Token> tokens) {
     final choices = <Choice>[];
 
     for (final token in tokens.where(
       (token) => token.type == TokenType.Choice,
     )) {
-      // Split case into operable parts
+      // Split case into operable parts.
       final parts = token.content.split(Symbols.ChoiceResultDivider);
 
-      // The first part of a case is the command
+      // The first part of a case is the command.
       final conditionRaw = parts.removeAt(0);
 
-      // The other parts of a case are the result
+      // The other parts of a case are the result.
       final resultRaw = parts.join(Symbols.ChoiceResultDivider);
 
       var operation = Operation.Default;
@@ -215,8 +215,8 @@ Could not parse choice: Expected a command and optional arguments inside parenth
   }
 
   /// Taking the [operation] and the [arguments] passed into it, construct a
-  /// `Condition` which must be met for a `Choice` to be matched to the control
-  /// variable of an expression
+  /// `Condition` that must be met for a `Choice` to be matched to the control
+  /// variable of an expression.
   Condition<String> constructCondition(
     Operation operation,
     List<String> arguments,
@@ -307,7 +307,7 @@ Could not construct a set condition: All arguments must be of the same type.''')
     }
   }
 
-  /// Construct a `Condition` based on mathematical checks
+  /// Construct a `Condition` based on mathematical checks.
   Condition<num> constructMathematicalCondition(
       Operation operation, num argument) {
     switch (operation) {
@@ -323,7 +323,7 @@ Could not construct a set condition: All arguments must be of the same type.''')
     return (_) => false;
   }
 
-  /// Construct a `Condition` based on set checks
+  /// Construct a `Condition` based on set checks.
   Condition<num> constructSetCondition(
       Operation operation, Iterable<num> arguments) {
     switch (operation) {

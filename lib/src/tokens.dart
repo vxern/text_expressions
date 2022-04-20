@@ -4,24 +4,24 @@ import 'package:text_expressions/src/symbols.dart';
 import 'package:text_expressions/src/utils.dart';
 
 /// A representation of a part of a string which needs different handling
-/// of [content] based on its [type]
+/// of [content] based on its [type].
 class Token {
-  /// Instance of the `Lexer` working with this token
+  /// Instance of the `Lexer` working with this token.
   final Lexer lexer;
 
   /// Identifies the [content] as being of a certain type, and is used to
-  /// decide how [content] should be parsed
+  /// decide how [content] should be parsed.
   final TokenType type;
 
-  /// The text content of this token
+  /// The text content of this token.
   final String content;
 
   /// Creates an instance of `Token` with the passed [type] and optional
-  /// [content]
+  /// [content].
   const Token(this.lexer, this.type, this.content);
 
   /// Parses this token by calling the correct parsing function corresponding to
-  /// the [type] of this token
+  /// the [type] of this token.
   String parse(Arguments arguments) {
     switch (type) {
       case TokenType.External:
@@ -37,8 +37,8 @@ class Token {
     }
   }
 
-  /// Fetches the external phrase from [Parser.phrases]. If the phrase is an
-  /// expression, it is first parsed, and then returned
+  /// Fetches the external phrase from [Parser.phrases].  If the phrase is an
+  /// expression, it is first parsed, and then returned.
   String parseExternal(Arguments arguments) {
     if (!lexer.parser.phrases.containsKey(content)) {
       lexer.log.severe('''
@@ -59,9 +59,9 @@ Could not parse external phrase: The key '<$content>' does not exist.''');
     return parseExpression(arguments, phrase);
   }
 
-  /// Resolves the expression, and returns the result
+  /// Resolves the expression, and returns the result.
   String parseExpression(Arguments arguments, [String? phrase]) {
-    // Remove the surrounding brackets to leave just the content
+    // Remove the surrounding brackets to leave just the content.
     final phraseContent =
         phrase != null ? phrase.substring(1, phrase.length - 1) : content;
 
@@ -82,7 +82,7 @@ Could not parse expression: The control variable '$controlVariable' does not mat
     return Parser.fallback;
   }
 
-  /// Fetches the argument described by the parameter and returns its value
+  /// Fetches the argument described by the parameter and returns its value.
   String parseParameter(Arguments arguments) {
     if (isInteger(content)) {
       return parsePositionalParameter(arguments);
@@ -116,17 +116,17 @@ Could not parse a positional parameter: Attempted to access an argument at posit
     return arguments.positional.elementAt(index).toString();
   }
 
-  /// Returns this token's [content]
+  /// Returns this token's [content].
   String parseText() => content;
 
   /// Checks if [phrase] is an external phrase, which needs to be 'included' in
-  /// the main phrase
+  /// the main phrase.
   bool isExternal(String phrase) =>
       phrase.startsWith(Symbols.ExternalOpen) &&
       phrase.endsWith(Symbols.ExternalClosed);
 
   /// Checks if [phrase] is an expression, which needs to be 'included' in the
-  /// main phrase
+  /// main phrase.
   bool isExpression(String phrase) =>
       phrase.startsWith(Symbols.ExpressionOpen) &&
       phrase.endsWith(Symbols.ExpressionClosed);

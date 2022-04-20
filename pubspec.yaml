@@ -1,11 +1,9 @@
-publish_to: https://pub.dev
-
 name: text_expressions
-version: 1.1.0+1
+version: 1.1.1
 
 description: >-
   A tiny, simple and complete tool to supercharge static JSON strings
-  with the power of dynamic, user-defined expressions. – Ensure your
+  with the power of dynamic, user-defined expressions. - Ensure your
   translations are always grammatically and orthographically correct.
 
 homepage: https://github.com/wordcollector/text_expressions
@@ -20,4 +18,4 @@ dependencies:
   sprint: ^1.0.2+3
 
 dev_dependencies:
-  words: ^2.0.0+1
+  words: ^0.0.2+1
