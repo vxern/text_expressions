@@ -1,3 +1,7 @@
+## 1.1.1+2
+
+- Updated project description (again).
+
 ## 1.1.1+1
 
 - Updated project description to fit Dart file conventions.
