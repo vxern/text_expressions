@@ -1,3 +1,7 @@
+## 1.1.1+1
+
+- Updated project description to fit Dart file conventions.
+
 ## 1.1.1
 
 - Made full stops at the end of documentation comments consistent.
