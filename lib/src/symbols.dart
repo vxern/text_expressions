@@ -68,16 +68,16 @@ enum SymbolType {
 }
 
 /// Representation of a character significant to the tokenisation of a string by
-/// splitting it into its `Token` components by the `Lexer`
+/// splitting it into its `Token` components by the `Lexer`.
 class Symbol {
   /// The [type] of this `Symbol` which describes what `Token` this symbol is a
-  /// component of
+  /// component of.
   final SymbolType type;
 
-  /// Zero-based index of the `Symbol` inside the parent string
+  /// Zero-based index of the `Symbol` inside the parent string.
   final int position;
 
   /// Creates an instance of `Symbol` assigning a [type] and its [position]
-  /// inside the string which is being parsed
+  /// inside the string which is being parsed.
   const Symbol(this.type, this.position);
 }
