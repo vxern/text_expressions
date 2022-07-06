@@ -1,4 +1,3 @@
-import 'package:enum_as_string/enum_as_string.dart';
 import 'package:sprint/sprint.dart';
 
 import 'package:text_expressions/src/choices.dart';
@@ -12,7 +11,7 @@ class Lexer {
   /// Instance of `Sprint` for logging messages specific to the `Lexer`.
   final Sprint log;
 
-  /// Instance of the `Parser` by which this `Lexer` is employed.
+  /// Instance of the `Parser` by whom this `Lexer` is employed.
   final Parser parser;
 
   /// Creates an instance of `Lexer`, passing in the parser it is employed by.
@@ -178,16 +177,18 @@ class Lexer {
       if (conditionRaw.contains(Symbols.ArgumentOpen)) {
         final commandParts = conditionRaw.split(Symbols.ArgumentOpen);
         if (commandParts.length > 2) {
-          log.severe('''
-Could not parse choice: Expected a command and optional arguments inside parentheses, but found multiple parentheses.''');
+          log.severe(
+            '''
+Could not parse choice: Expected a command and optional arguments inside parentheses, but found multiple parentheses.''',
+          );
         }
 
         final command = commandParts[0];
-        operation = Enum.fromString(
-          Operation.values,
-          command,
-          orDefault: Operation.Default,
-        )!;
+        operation = Operation.values
+                .map((operation) => operation.name)
+                .contains(command)
+            ? Operation.values.byName(command)
+            : Operation.Default;
 
         final argumentsString =
             commandParts[1].substring(0, commandParts[1].length - 1);
@@ -197,18 +198,21 @@ Could not parse choice: Expected a command and optional arguments inside parenth
               : argumentsString.split('-'),
         );
       } else {
-        operation = Enum.fromString(
-          Operation.values,
-          conditionRaw,
-          orDefault: Operation.Equals,
-        )!;
+        operation = Operation.values
+                .map((operation) => operation.name)
+                .contains(conditionRaw)
+            ? Operation.values.byName(conditionRaw)
+            : Operation.Equals;
+
         arguments.add(conditionRaw);
       }
 
-      choices.add(Choice(
-        condition: constructCondition(operation, arguments),
-        result: result,
-      ));
+      choices.add(
+        Choice(
+          condition: constructCondition(operation, arguments),
+          result: result,
+        ),
+      );
     }
 
     return choices;
@@ -241,11 +245,13 @@ Could not parse choice: Expected a command and optional arguments inside parenth
       case Operation.LesserOrEqual:
         final argumentsAreNumeric = arguments.map(isNumeric);
         if (argumentsAreNumeric.contains(false)) {
-          log.severe('''
-Could not construct mathematical condition: '${Enum.asString(operation)}' requires that its argument(s) be numeric.
+          log.severe(
+            '''
+Could not construct mathematical condition: '${operation.name}' requires that its argument(s) be numeric.
 One of the provided arguments $arguments is not numeric, and thus is not parsable as a number.
 
-To prevent runtime exceptions, the condition has been set to evaluate to `false`.''');
+To prevent runtime exceptions, the condition has been set to evaluate to `false`.''',
+          );
           return (_) => false;
         }
 
@@ -280,8 +286,10 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
             numberOfNumericArguments != arguments.length;
 
         if (isTypeMismatch) {
-          log.severe('''
-Could not construct a set condition: All arguments must be of the same type.''');
+          log.severe(
+            '''
+Could not construct a set condition: All arguments must be of the same type.''',
+          );
           return (_) => false;
         }
 
@@ -309,7 +317,9 @@ Could not construct a set condition: All arguments must be of the same type.''')
 
   /// Construct a `Condition` based on mathematical checks.
   Condition<num> constructMathematicalCondition(
-      Operation operation, num argument) {
+    Operation operation,
+    num argument,
+  ) {
     switch (operation) {
       case Operation.Greater:
         return (var control) => control > argument;
@@ -325,7 +335,9 @@ Could not construct a set condition: All arguments must be of the same type.''')
 
   /// Construct a `Condition` based on set checks.
   Condition<num> constructSetCondition(
-      Operation operation, Iterable<num> arguments) {
+    Operation operation,
+    Iterable<num> arguments,
+  ) {
     switch (operation) {
       case Operation.In:
         return (var control) => arguments.contains(control);

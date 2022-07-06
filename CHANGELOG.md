@@ -1,3 +1,8 @@
+## 1.2.0
+
+- Updated SDK version from `2.12.0` to `2.17.0`.
+- Removed `enum_as_string` package.
+
 ## 1.1.1+2
 
 - Updated project description (again).

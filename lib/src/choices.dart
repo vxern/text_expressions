@@ -1,10 +1,11 @@
-/// A function which returns `true` if the condition for matching the control
-/// variable with a `Choice` has been met.
+/// A signature for a function that will return `true` if the condition for
+/// matching the control variable with a `Choice` has been met, and `false`
+/// otherwise.
 typedef Condition<T> = bool Function(T controlVariable);
 
-/// A single `Choice` ('case') inside an `Expression` ('switch statement').  The
+/// A single `Choice` (case) within an `Expression` (switch statement). The
 /// control variable of the expression is tested against the `Choice` by testing
-/// [condition].  If [condition] yields true, [result] is parsed and returned.
+/// [condition]. If [condition] yields true, [result] is parsed and returned.
 class Choice {
   /// The condition that must be met for this `Choice`'s [result] to be accepted
   /// as the result of the expression in which this `Choice` lies.

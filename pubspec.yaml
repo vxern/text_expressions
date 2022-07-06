@@ -1,5 +1,5 @@
 name: text_expressions
-version: 1.1.1+2
+version: 1.2.0
 
 description: >-
   A tiny and complete tool to supercharge static JSON strings
@@ -10,11 +10,10 @@ repository: https://github.com/wordcollector/text_expressions
 issue_tracker: https://github.com/wordcollector/text_expressions/issues
 
 environment:
-  sdk: '>=2.12.0 <3.0.0'
+  sdk: '>=2.17.0 <3.0.0'
 
 dependencies:
-  enum_as_string: ^1.0.0+2
-  sprint: ^1.0.2+3
+  sprint: ^1.0.4
 
 dev_dependencies:
-  words: ^0.0.2+1
+  words: ^0.1.1
