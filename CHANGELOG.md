@@ -1,3 +1,15 @@
+## 2.0.0 (Work in progress)
+
+- Additions:
+  - Exceptions:
+    - `MissingKeyException` - Thrown when a key is not present.
+    - `ParserException` - Thrown at various points during the parsing of
+      expressions.
+- Changes:
+  - Instead of logging an error, the package will now throw an exception.
+- Deletions:
+  - Removed `sprint` dependency.
+
 ## 1.2.0
 
 - Updated SDK version from `2.12.0` to `2.17.0`.

@@ -1,7 +1,7 @@
+import 'package:text_expressions/src/exceptions.dart';
 import 'package:text_expressions/src/lexer.dart';
 import 'package:text_expressions/src/parser.dart';
 import 'package:text_expressions/src/symbols.dart';
-import 'package:text_expressions/src/utils.dart';
 
 /// A representation of a part of a string which needs different handling
 /// of [content] based on its [type].
@@ -33,7 +33,10 @@ class Token {
       case TokenType.Text:
         return parseText();
       case TokenType.Choice:
-        return Parser.fallback;
+        throw const ParserException(
+          'Could not parse phrase',
+          'Choices cannot be parsed as stand-alone entities.',
+        );
     }
   }
 
@@ -41,15 +44,7 @@ class Token {
   /// expression, it is first parsed, and then returned.
   String parseExternal(Arguments arguments) {
     if (!lexer.parser.phrases.containsKey(content)) {
-      lexer.log.severe(
-        '''
-Could not parse external phrase: The key '<$content>' does not exist.''',
-      );
-      return Parser.fallback;
-    }
-
-    if (!lexer.parser.phrases.containsKey(content)) {
-      return Parser.fallback;
+      throw MissingKeyException('Could not parse external phrase', content);
     }
 
     final phrase = lexer.parser.phrases[content].toString();
@@ -79,11 +74,11 @@ Could not parse external phrase: The key '<$content>' does not exist.''',
       return lexer.parser.parse(matchedChoice.result, arguments);
     }
 
-    lexer.log.severe(
-      '''
-Could not parse expression: The control variable '$controlVariable' does not match any choice defined inside the expression.''',
+    throw ParserException(
+      'Could not parse expression',
+      "The control variable '$controlVariable' "
+          'does not match any choice defined inside the expression.',
     );
-    return Parser.fallback;
   }
 
   /// Fetches the argument described by the parameter and returns its value.
@@ -93,11 +88,12 @@ Could not parse expression: The control variable '$controlVariable' does not mat
     }
 
     if (!arguments.named.containsKey(content)) {
-      lexer.log.severe(
-        '''
-Could not parse a named parameter: An argument with the name '$content' hadn't been supplied to the parser at the time of parsing the named parameter of the same name.''',
+      throw ParserException(
+        'Could not parse a named parameter',
+        "An argument with the name '$content' hadn't been supplied to the "
+            'parser at the time of parsing the named parameter of the same '
+            'name.',
       );
-      return Parser.fallback;
     }
 
     return arguments.named[content].toString();
@@ -108,19 +104,18 @@ Could not parse a named parameter: An argument with the name '$content' hadn't b
     final index = int.parse(content);
 
     if (index < 0) {
-      lexer.log.severe(
-        '''
-Could not parse a positional parameter: The index must not be negative.''',
+      throw const ParserException(
+        'Could not parse a positional parameter',
+        'The index must not be negative.',
       );
-      return Parser.fallback;
     }
 
     if (index >= arguments.positional.length) {
-      lexer.log.severe(
-        '''
-Could not parse a positional parameter: Attempted to access an argument at position $index, but ${arguments.positional.length} argument(s) were supplied.''',
+      throw ParserException(
+        'Could not parse a positional parameter',
+        'Attempted to access an argument at position $index, but '
+            '${arguments.positional.length} argument(s) were supplied.',
       );
-      return Parser.fallback;
     }
 
     return arguments.positional.elementAt(index).toString();
@@ -164,4 +159,27 @@ enum TokenType {
 
   /// A string of text which does not require to be parsed.
   Text,
+}
+
+/// Extension on `Iterable` providing a `firstWhereOrNull()` function that
+/// returns `null` if an element is not found, rather than throw `StateError`.
+extension NullSafeAccess<E> on Iterable<E> {
+  /// Returns the first element that satisfies the given predicate [test].
+  ///
+  /// If no elements satisfy [test], the result of invoking the [orElse]
+  /// function is returned.
+  ///
+  /// Unlike `Iterable.firstWhere()`, this function defaults to returning `null`
+  /// if an element is not found.
+  E? firstWhereOrNull(bool Function(E) test, {E Function()? orElse}) {
+    for (final element in this) {
+      if (test(element)) {
+        return element;
+      }
+    }
+    if (orElse != null) {
+      return orElse();
+    }
+    return null;
+  }
 }

@@ -1,5 +1,3 @@
-import 'package:sprint/sprint.dart';
-
 import 'package:text_expressions/src/choices.dart';
 import 'package:text_expressions/src/parser.dart';
 import 'package:text_expressions/src/symbols.dart';
@@ -8,15 +6,11 @@ import 'package:text_expressions/src/tokens.dart';
 /// The lexer handles the breaking of strings into singular `Tokens`s and
 /// `Symbol`s for the purpose of fine-grained control over parsing.
 class Lexer {
-  /// Instance of `Sprint` for logging messages specific to the `Lexer`.
-  final Sprint log;
-
   /// Instance of the `Parser` by whom this `Lexer` is employed.
   final Parser parser;
 
   /// Creates an instance of `Lexer`, passing in the parser it is employed by.
-  Lexer(this.parser, {bool quietMode = false})
-      : log = Sprint('Lexer', quietMode: quietMode);
+  Lexer(this.parser);
 
   /// Extracts a `List` of `Tokens` from [target].
   List<Token> getTokens(String target) {
@@ -177,9 +171,9 @@ class Lexer {
       if (conditionRaw.contains(Symbols.ArgumentOpen)) {
         final commandParts = conditionRaw.split(Symbols.ArgumentOpen);
         if (commandParts.length > 2) {
-          log.severe(
-            '''
-Could not parse choice: Expected a command and optional arguments inside parentheses, but found multiple parentheses.''',
+          throw const FormatException(
+            'Could not parse choice: Expected a command and optional arguments '
+            'inside parentheses, but found multiple parentheses.',
           );
         }
 
@@ -245,14 +239,13 @@ Could not parse choice: Expected a command and optional arguments inside parenth
       case Operation.LesserOrEqual:
         final argumentsAreNumeric = arguments.map(isNumeric);
         if (argumentsAreNumeric.contains(false)) {
-          log.severe(
+          throw FormatException(
             '''
 Could not construct mathematical condition: '${operation.name}' requires that its argument(s) be numeric.
 One of the provided arguments $arguments is not numeric, and thus is not parsable as a number.
 
 To prevent runtime exceptions, the condition has been set to evaluate to `false`.''',
           );
-          return (_) => false;
         }
 
         final argumentsAsNumbers = arguments.map(num.parse);
@@ -286,11 +279,10 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
             numberOfNumericArguments != arguments.length;
 
         if (isTypeMismatch) {
-          log.severe(
-            '''
-Could not construct a set condition: All arguments must be of the same type.''',
+          throw const FormatException(
+            'Could not construct a set condition: All arguments must be of the '
+            'same type.',
           );
-          return (_) => false;
         }
 
         final rangeType = numberOfNumericArguments == 0 ? String : num;

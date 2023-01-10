@@ -1,5 +1,4 @@
-import 'package:sprint/sprint.dart';
-
+import 'package:text_expressions/src/exceptions.dart';
 import 'package:text_expressions/src/lexer.dart';
 
 /// Map of letters used for range checks.
@@ -10,12 +9,6 @@ const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 /// for expressions to be defined externally and 'included' in a phrase through
 /// the use of acute angles '<>'.
 class Parser {
-  /// Used as a fallback 'translation' for an inexistent key.
-  static const String fallback = '?';
-
-  /// Instance of `Sprint` message printer for the parser.
-  final Sprint log;
-
   /// Instace of `Lexer` for breaking phrases into their parsable components.
   late final Lexer lexer;
 
@@ -23,9 +16,8 @@ class Parser {
   final Map<String, String> phrases = {};
 
   /// Creates an instance of an expression parser.
-  Parser({bool quietMode = true})
-      : log = Sprint('Parser', quietMode: quietMode) {
-    lexer = Lexer(this, quietMode: quietMode);
+  Parser() {
+    lexer = Lexer(this);
   }
 
   /// Loads a new set of [phrases] into the parser, clearing the previous set.
@@ -45,8 +37,7 @@ class Parser {
     Set<Object> positional = const <Object>{},
   }) {
     if (!phrases.containsKey(key)) {
-      log.warn("Could not parse phrase: The key '$key' does not exist.");
-      return Parser.fallback;
+      throw MissingKeyException('Could not parse phrase', key);
     }
 
     final phrase = phrases[key]!;
