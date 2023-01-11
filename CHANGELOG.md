@@ -5,10 +5,37 @@
     - `MissingKeyException` - Thrown when a key is not present.
     - `ParserException` - Thrown at various points during the parsing of
       expressions.
-- Changes:
-  - Instead of logging an error, the package will now throw an exception.
 - Deletions:
   - Removed `sprint` dependency.
+- Changes:
+  - BREAKING: Instead of logging an error, the package will now throw an
+    exception.
+  - The members of all enums have been converted to `camelCase`.
+  - 'Operations' have been renamed to 'matchers'.
+  - Several matchers were renamed and/or received aliases:
+    - `Default` is now known as `always` in the private API.
+      - `Always`, `Fallback` and `Otherwise` are now synonymous with `Default`.
+    -
+      - `=` and `==` are now synonymous with `Equals`.
+    - `Greater` has been renamed to `IsGreater`.
+      - `Greater`, `GT`, `GTR` and `>` are now synonymous with `IsGreater`.
+    - `GreaterOrEqual` has been renamed to `IsGreaterOrEqual`.
+      - `GreaterOrEqual`, `GTE` and `>=` are now synonymous with
+        `IsGreaterOrEqual`.
+    - `Lesser` has been renamed to `IsLesser`.
+      - `Lesser`, `LS`, `LSS` and `<` are now synonymous with `IsLesser`.
+    - `LesserOrEqual` has been renamed to `IsLesserOrEqual`.
+      - `LesserOrEqual`, `LSE` and `<=` are now synonymous with
+        `IsLesserOrEqual`.
+    - `In` has been renamed to `IsInGroup`.
+      - `In`, 'IsIn' and 'InGroup' are now synonymous with `IsInGroup`.
+    - `NotIn` has been renamed to `IsNotInGroup`.
+      - `NotIn`, `!In`, `IsNotIn`, `NotInGroup` and `!InGroup` are now
+        synonymous with `IsNotInGroup`.
+    - `InRange` has been renamed to `IsInRange`.
+      - `InRange` is now synonymous with `IsInRange`.
+    - `NotInRange` has been renamed to `IsNotInRange`.
+      - `NotInRange` and `!InRange` are now synonymous with `IsNotInRange`.
 
 ## 1.2.0
 
@@ -49,7 +76,7 @@
 
 ## 1.0.1
 
-- Added `In` and `NotIn` operations.
+- Added `In` and `NotIn` matchers.
 
 ## 1.0.0
 

@@ -18,7 +18,7 @@ class Lexer {
 
     // In order to break the string down correctly into tokens, the parser
     // must see exactly where each symbol lies in the string.
-    final symbols = getSymbols(target);
+    final symbolsWithPositions = getSymbols(target);
 
     // How deeply nested the current symbol being parsed is.
     var nestingLevel = 0;
@@ -28,71 +28,83 @@ class Lexer {
     var lastChoicePosition = 0;
 
     // Iterate over symbols, finding and extracting tokens.
-    for (final symbol in symbols) {
+    for (final symbolWithPosition in symbolsWithPositions) {
       TokenType? tokenType;
       String? content;
 
-      switch (symbol.type) {
-        case SymbolType.ExternalOpen:
-        case SymbolType.ExpressionOpen:
-        case SymbolType.ParameterOpen:
-          tokenType = TokenType.Text;
+      final symbol = symbolWithPosition.object;
+
+      switch (symbol) {
+        case Symbol.externalOpen:
+        case Symbol.expressionOpen:
+        case Symbol.parameterOpen:
+          tokenType = TokenType.text;
 
           if (nestingLevel == 0 && lastChoicePosition == 0) {
-            final precedingString =
-                target.substring(lastSymbolPosition, symbol.position);
+            final precedingString = target.substring(
+              lastSymbolPosition,
+              symbolWithPosition.position,
+            );
             if (precedingString.isNotEmpty) {
               content = precedingString;
             }
-            lastSymbolPosition = symbol.position + 1;
+            lastSymbolPosition = symbolWithPosition.position + 1;
           }
 
           nestingLevel++;
           break;
-        case SymbolType.ExternalClosed:
-          tokenType = TokenType.External;
+        case Symbol.externalClosed:
+          tokenType = TokenType.external;
           continue closed;
-        case SymbolType.ExpressionClosed:
-          tokenType = TokenType.Expression;
+        case Symbol.expressionClosed:
+          tokenType = TokenType.expression;
           continue closed;
         closed:
-        case SymbolType.ParameterClosed:
-          tokenType ??= TokenType.Parameter;
+        case Symbol.parameterClosed:
+          tokenType ??= TokenType.parameter;
 
           if (nestingLevel == 1 && lastChoicePosition == 0) {
-            content = target.substring(lastSymbolPosition, symbol.position);
-            lastSymbolPosition = symbol.position + 1;
+            content = target.substring(
+              lastSymbolPosition,
+              symbolWithPosition.position,
+            );
+            lastSymbolPosition = symbolWithPosition.position + 1;
           }
 
           nestingLevel--;
           break;
-        case SymbolType.ChoiceIntroducer:
+        case Symbol.choiceIntroducer:
           if (nestingLevel == 0 && lastChoicePosition == 0) {
-            lastChoicePosition = symbol.position + 1;
+            lastChoicePosition = symbolWithPosition.position + 1;
           }
           break;
-        case SymbolType.ChoiceSeparator:
-          tokenType = TokenType.Choice;
+        case Symbol.choiceSeparator:
+          tokenType = TokenType.choice;
 
           if (nestingLevel == 0 && lastChoicePosition != 0) {
-            content =
-                target.substring(lastChoicePosition, symbol.position).trim();
-            lastChoicePosition = symbol.position + 1;
+            content = target
+                .substring(lastChoicePosition, symbolWithPosition.position)
+                .trim();
+            lastChoicePosition = symbolWithPosition.position + 1;
           }
           break;
-        case SymbolType.EndOfString:
+        case Symbol.endOfString:
           if (lastSymbolPosition == target.length) {
             break;
           }
 
           if (lastChoicePosition == 0) {
-            tokenType = TokenType.Text;
+            tokenType = TokenType.text;
             content = target.substring(lastSymbolPosition);
             break;
           }
 
-          tokenType = TokenType.Choice;
+          tokenType = TokenType.choice;
           content = target.substring(lastChoicePosition).trim();
+          break;
+        case Symbol.choiceResultDivider:
+        case Symbol.argumentOpen:
+        case Symbol.argumentClosed:
           break;
       }
 
@@ -105,45 +117,18 @@ class Lexer {
   }
 
   /// Extracts a `List` of `Symbols` from [target].
-  List<Symbol> getSymbols(String target) {
-    final symbols = <Symbol>[];
+  List<WithPosition<Symbol>> getSymbols(String target) {
+    final symbols = <WithPosition<Symbol>>[];
 
     for (var position = 0; position < target.length; position++) {
-      SymbolType? symbolType;
+      final symbol = Symbol.fromCharacter(target[position]);
 
-      switch (target[position]) {
-        case Symbols.ExternalOpen:
-          symbolType = SymbolType.ExternalOpen;
-          break;
-        case Symbols.ExternalClosed:
-          symbolType = SymbolType.ExternalClosed;
-          break;
-        case Symbols.ExpressionOpen:
-          symbolType = SymbolType.ExpressionOpen;
-          break;
-        case Symbols.ExpressionClosed:
-          symbolType = SymbolType.ExpressionClosed;
-          break;
-        case Symbols.ParameterOpen:
-          symbolType = SymbolType.ParameterOpen;
-          break;
-        case Symbols.ParameterClosed:
-          symbolType = SymbolType.ParameterClosed;
-          break;
-        case Symbols.ChoiceIntroducer:
-          symbolType = SymbolType.ChoiceIntroducer;
-          break;
-        case Symbols.ChoiceSeparator:
-          symbolType = SymbolType.ChoiceSeparator;
-          break;
-      }
-
-      if (symbolType != null) {
-        symbols.add(Symbol(symbolType, position));
+      if (symbol != null) {
+        symbols.add(WithPosition(symbol, position));
       }
     }
 
-    symbols.add(Symbol(SymbolType.EndOfString, target.length - 1));
+    symbols.add(WithPosition(Symbol.endOfString, target.length - 1));
 
     return symbols;
   }
@@ -153,23 +138,23 @@ class Lexer {
     final choices = <Choice>[];
 
     for (final token in tokens.where(
-      (token) => token.type == TokenType.Choice,
+      (token) => token.type == TokenType.choice,
     )) {
       // Split case into operable parts.
-      final parts = token.content.split(Symbols.ChoiceResultDivider);
+      final parts = token.content.split(Symbol.choiceResultDivider.character);
 
       // The first part of a case is the command.
       final conditionRaw = parts.removeAt(0);
 
       // The other parts of a case are the result.
-      final resultRaw = parts.join(Symbols.ChoiceResultDivider);
+      final resultRaw = parts.join(Symbol.choiceResultDivider.character);
 
-      var operation = Operation.Default;
+      var matcher = Matcher.always;
       final arguments = <String>[];
       final result = resultRaw;
 
-      if (conditionRaw.contains(Symbols.ArgumentOpen)) {
-        final commandParts = conditionRaw.split(Symbols.ArgumentOpen);
+      if (conditionRaw.contains(Symbol.argumentOpen.character)) {
+        final commandParts = conditionRaw.split(Symbol.argumentOpen.character);
         if (commandParts.length > 2) {
           throw const FormatException(
             'Could not parse choice: Expected a command and optional arguments '
@@ -178,11 +163,7 @@ class Lexer {
         }
 
         final command = commandParts[0];
-        operation = Operation.values
-                .map((operation) => operation.name)
-                .contains(command)
-            ? Operation.values.byName(command)
-            : Operation.Default;
+        matcher = Matcher.fromString(command) ?? Matcher.always;
 
         final argumentsString =
             commandParts[1].substring(0, commandParts[1].length - 1);
@@ -192,18 +173,14 @@ class Lexer {
               : argumentsString.split('-'),
         );
       } else {
-        operation = Operation.values
-                .map((operation) => operation.name)
-                .contains(conditionRaw)
-            ? Operation.values.byName(conditionRaw)
-            : Operation.Equals;
+        matcher = Matcher.fromString(conditionRaw) ?? Matcher.equals;
 
         arguments.add(conditionRaw);
       }
 
       choices.add(
         Choice(
-          condition: constructCondition(operation, arguments),
+          condition: constructCondition(matcher, arguments),
           result: result,
         ),
       );
@@ -212,36 +189,36 @@ class Lexer {
     return choices;
   }
 
-  /// Taking the [operation] and the [arguments] passed into it, construct a
+  /// Taking the [matcher] and the [arguments] passed into it, construct a
   /// `Condition` that must be met for a `Choice` to be matched to the control
   /// variable of an expression.
   Condition<String> constructCondition(
-    Operation operation,
+    Matcher matcher,
     List<String> arguments,
   ) {
-    switch (operation) {
-      case Operation.Default:
+    switch (matcher) {
+      case Matcher.always:
         return (_) => true;
 
-      case Operation.StartsWith:
+      case Matcher.startsWith:
         return (var control) => arguments.any(control.startsWith);
-      case Operation.EndsWith:
+      case Matcher.endsWith:
         return (var control) => arguments.any(control.endsWith);
-      case Operation.Contains:
+      case Matcher.contains:
         return (var control) => arguments.any(control.contains);
-      case Operation.Equals:
+      case Matcher.equals:
         return (var control) =>
             arguments.any((argument) => control == argument);
 
-      case Operation.Greater:
-      case Operation.GreaterOrEqual:
-      case Operation.Lesser:
-      case Operation.LesserOrEqual:
+      case Matcher.isGreater:
+      case Matcher.isGreaterOrEqual:
+      case Matcher.isLesser:
+      case Matcher.isLesserOrEqual:
         final argumentsAreNumeric = arguments.map(isNumeric);
         if (argumentsAreNumeric.contains(false)) {
           throw FormatException(
             '''
-Could not construct mathematical condition: '${operation.name}' requires that its argument(s) be numeric.
+Could not construct mathematical condition: '${matcher.name}' requires that its argument(s) be numeric.
 One of the provided arguments $arguments is not numeric, and thus is not parsable as a number.
 
 To prevent runtime exceptions, the condition has been set to evaluate to `false`.''',
@@ -251,7 +228,7 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
         final argumentsAsNumbers = arguments.map(num.parse);
         final mathematicalConditions = argumentsAsNumbers.map(
           (argument) => constructMathematicalCondition(
-            operation,
+            matcher,
             argument,
           ),
         );
@@ -266,10 +243,10 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
           );
         };
 
-      case Operation.In:
-      case Operation.NotIn:
-      case Operation.InRange:
-      case Operation.NotInRange:
+      case Matcher.isInGroup:
+      case Matcher.isNotInGroup:
+      case Matcher.isInRange:
+      case Matcher.isNotInRange:
         final numberOfNumericArguments = arguments.fold<int>(
           0,
           (previousValue, argument) =>
@@ -293,7 +270,7 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
 
         final argumentsAsNumbers = arguments.map(getNumericValue);
         final setCondition = constructSetCondition(
-          operation,
+          matcher,
           argumentsAsNumbers,
         );
 
@@ -309,44 +286,64 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
 
   /// Construct a `Condition` based on mathematical checks.
   Condition<num> constructMathematicalCondition(
-    Operation operation,
+    Matcher matcher,
     num argument,
   ) {
-    switch (operation) {
-      case Operation.Greater:
+    switch (matcher) {
+      case Matcher.isGreater:
         return (var control) => control > argument;
-      case Operation.GreaterOrEqual:
+      case Matcher.isGreaterOrEqual:
         return (var control) => control >= argument;
-      case Operation.Lesser:
+      case Matcher.isLesser:
         return (var control) => control < argument;
-      case Operation.LesserOrEqual:
+      case Matcher.isLesserOrEqual:
         return (var control) => control <= argument;
+      case Matcher.always:
+      case Matcher.equals:
+      case Matcher.startsWith:
+      case Matcher.endsWith:
+      case Matcher.contains:
+      case Matcher.isInGroup:
+      case Matcher.isNotInGroup:
+      case Matcher.isInRange:
+      case Matcher.isNotInRange:
+        break;
     }
     return (_) => false;
   }
 
   /// Construct a `Condition` based on set checks.
   Condition<num> constructSetCondition(
-    Operation operation,
+    Matcher matcher,
     Iterable<num> arguments,
   ) {
-    switch (operation) {
-      case Operation.In:
+    switch (matcher) {
+      case Matcher.isInGroup:
         return (var control) => arguments.contains(control);
-      case Operation.NotIn:
+      case Matcher.isNotInGroup:
         return (var control) => !arguments.contains(control);
-      case Operation.InRange:
+      case Matcher.isInRange:
         return (var control) => isInRange(
               control,
               arguments.elementAt(0),
               arguments.elementAt(1),
             );
-      case Operation.NotInRange:
+      case Matcher.isNotInRange:
         return (var control) => !isInRange(
               control,
               arguments.elementAt(0),
               arguments.elementAt(1),
             );
+      case Matcher.always:
+      case Matcher.equals:
+      case Matcher.startsWith:
+      case Matcher.endsWith:
+      case Matcher.contains:
+      case Matcher.isGreater:
+      case Matcher.isGreaterOrEqual:
+      case Matcher.isLesser:
+      case Matcher.isLesserOrEqual:
+        break;
     }
     return (_) => false;
   }
@@ -359,5 +356,3 @@ To prevent runtime exceptions, the condition has been set to evaluate to `false`
   bool isInRange(num subject, num minimum, num maximum) =>
       minimum <= subject || subject <= maximum;
 }
-
-// ignore_for_file: missing_enum_constant_in_switch

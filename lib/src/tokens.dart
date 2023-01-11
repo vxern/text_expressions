@@ -24,15 +24,15 @@ class Token {
   /// the [type] of this token.
   String parse(Arguments arguments) {
     switch (type) {
-      case TokenType.External:
+      case TokenType.external:
         return parseExternal(arguments);
-      case TokenType.Expression:
+      case TokenType.expression:
         return parseExpression(arguments);
-      case TokenType.Parameter:
+      case TokenType.parameter:
         return parseParameter(arguments);
-      case TokenType.Text:
+      case TokenType.text:
         return parseText();
-      case TokenType.Choice:
+      case TokenType.choice:
         throw const ParserException(
           'Could not parse phrase',
           'Choices cannot be parsed as stand-alone entities.',
@@ -127,14 +127,14 @@ class Token {
   /// Checks if [phrase] is an external phrase, which needs to be 'included' in
   /// the main phrase.
   bool isExternal(String phrase) =>
-      phrase.startsWith(Symbols.ExternalOpen) &&
-      phrase.endsWith(Symbols.ExternalClosed);
+      phrase.startsWith(Symbol.externalOpen.character) &&
+      phrase.endsWith(Symbol.externalOpen.character);
 
   /// Checks if [phrase] is an expression, which needs to be 'included' in the
   /// main phrase.
   bool isExpression(String phrase) =>
-      phrase.startsWith(Symbols.ExpressionOpen) &&
-      phrase.endsWith(Symbols.ExpressionClosed);
+      phrase.startsWith(Symbol.expressionOpen.character) &&
+      phrase.endsWith(Symbol.expressionClosed.character);
 
   /// Returns `true` if [target] is an integer.
   bool isInteger(String target) => int.tryParse(target) != null;
@@ -144,21 +144,21 @@ class Token {
 /// manipulate the token's content.
 enum TokenType {
   /// A phrase (value) defined under a different key.
-  External,
+  external,
 
   /// A one-line switch-case statement.
-  Expression,
+  expression,
 
   /// An argument designator which allows for external parameters to be inserted
   /// into the phrase being parsed.
-  Parameter,
+  parameter,
 
   /// A choice (case) in an expression (switch statement) that is matched
   /// against the control variable.
-  Choice,
+  choice,
 
   /// A string of text which does not require to be parsed.
-  Text,
+  text,
 }
 
 /// Extension on `Iterable` providing a `firstWhereOrNull()` function that

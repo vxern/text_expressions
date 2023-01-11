@@ -1,83 +1,72 @@
-/// List of symbols' characters used and understood by the `Lexer`.
-class Symbols {
+/// Enumerator representation of characters used in tokenising a string.
+enum Symbol {
   /// Opening bracket of an external phrase.
-  static const ExternalOpen = '<';
+  externalOpen('<'),
 
   /// Closing bracket of an external phrase.
-  static const ExternalClosed = '>';
+  externalClosed('>'),
 
   /// Opening bracket of an expression.
-  static const ExpressionOpen = '[';
+  expressionOpen('['),
 
   /// Closing bracket of an expression.
-  static const ExpressionClosed = ']';
+  expressionClosed(']'),
 
   /// Opening bracket of a parameter designator.
-  static const ParameterOpen = '{';
+  parameterOpen('{'),
 
   /// Closing bracket of a parameter designator.
-  static const ParameterClosed = '}';
+  parameterClosed('}'),
 
   /// Separates the control variable and the choices inside an expression.
-  static const ChoiceIntroducer = '~';
+  choiceIntroducer('~'),
 
   /// Separates the choices inside an expression.
-  static const ChoiceSeparator = '/';
+  choiceSeparator('/'),
 
   /// Separates the condition for matching a choice with the control variable
   /// and the result of the matching.
-  static const ChoiceResultDivider = ':';
+  choiceResultDivider(':'),
 
-  /// Opening bracket of the arguments used by the operation in constructing a
+  /// Opening bracket of the arguments used by the matcher in constructing a
   /// condition.
-  static const ArgumentOpen = '(';
+  argumentOpen('('),
 
-  /// Closing bracket of the arguments used by the operation in constructing a
+  /// Closing bracket of the arguments used by the matcher in constructing a
   /// condition.
-  static const ArgumentClosed = ')';
-}
-
-/// Enumerator representation of characters used in tokenising a string.
-enum SymbolType {
-  /// Opening bracket of an external phrase.
-  ExternalOpen,
-
-  /// Closing bracket of an external phrase.
-  ExternalClosed,
-
-  /// Opening bracket of an expression.
-  ExpressionOpen,
-
-  /// Closing bracket of an expression.
-  ExpressionClosed,
-
-  /// Opening bracket of a parameter designator.
-  ParameterOpen,
-
-  /// Closing bracket of a parameter designator.
-  ParameterClosed,
-
-  /// Separates the control variable and the choices inside an expression.
-  ChoiceIntroducer,
-
-  /// Separates the choices inside an expression.
-  ChoiceSeparator,
+  argumentClosed(')'),
 
   /// Symbol indicating the end of a string.
-  EndOfString,
+  endOfString('');
+
+  /// The character representing this `SymbolType`.
+  final String character;
+
+  /// Creates a `SymbolType` with the [character] that represents it.
+  const Symbol(this.character);
+
+  /// Taking a [character], attempts to resolve it to the `Symbol` that is
+  /// represented by the character. Otherwise, returns `null`.
+  static Symbol? fromCharacter(String character) {
+    for (final symbol in Symbol.values) {
+      if (symbol.character == character) {
+        return symbol;
+      }
+    }
+    return null;
+  }
 }
 
-/// Representation of a character significant to the tokenisation of a string by
-/// splitting it into its `Token` components by the `Lexer`.
-class Symbol {
-  /// The [type] of this `Symbol` which describes what `Token` this symbol is a
-  /// component of.
-  final SymbolType type;
+/// Represents an object of type `T` with an additional [position] relative to
+/// its parent object.
+class WithPosition<T> {
+  /// The stored object.
+  final T object;
 
-  /// Zero-based index of the `Symbol` inside the parent string.
+  /// Position relative to the parent object of [object].
   final int position;
 
-  /// Creates an instance of `Symbol` assigning a [type] and its [position]
-  /// inside the string which is being parsed.
-  const Symbol(this.type, this.position);
+  /// Creates an instance of `WithPosition` with the given [object] and its
+  /// [position] relative to its parent object.
+  const WithPosition(this.object, this.position);
 }
