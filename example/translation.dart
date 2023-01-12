@@ -21,7 +21,7 @@ class Translation {
     Map<String, Object> named = const <String, Object>{},
     Set<Object> positional = const <Object>{},
   }) =>
-      parser.parseKey(key, named: named, positional: positional);
+      parser.process(key, named: named, positional: positional);
 }
 
 enum Language { english, polish, romanian }

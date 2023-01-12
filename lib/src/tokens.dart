@@ -1,14 +1,12 @@
+import 'package:text_expressions/src/choices.dart';
 import 'package:text_expressions/src/exceptions.dart';
-import 'package:text_expressions/src/lexer.dart';
 import 'package:text_expressions/src/parser.dart';
 import 'package:text_expressions/src/symbols.dart';
+import 'package:text_expressions/src/utils.dart';
 
 /// A representation of a part of a string which needs different handling
 /// of [content] based on its [type].
 class Token {
-  /// Instance of the `Lexer` working with this token.
-  final Lexer lexer;
-
   /// Identifies the [content] as being of a certain type, and is used to
   /// decide how [content] should be parsed.
   final TokenType type;
@@ -18,126 +16,7 @@ class Token {
 
   /// Creates an instance of `Token` with the passed [type] and optional
   /// [content].
-  const Token(this.lexer, this.type, this.content);
-
-  /// Parses this token by calling the correct parsing function corresponding to
-  /// the [type] of this token.
-  String parse(Arguments arguments) {
-    switch (type) {
-      case TokenType.external:
-        return parseExternal(arguments);
-      case TokenType.expression:
-        return parseExpression(arguments);
-      case TokenType.parameter:
-        return parseParameter(arguments);
-      case TokenType.text:
-        return parseText();
-      case TokenType.choice:
-        throw const ParserException(
-          'Could not parse phrase',
-          'Choices cannot be parsed as stand-alone entities.',
-        );
-    }
-  }
-
-  /// Fetches the external phrase from [Parser.phrases].  If the phrase is an
-  /// expression, it is first parsed, and then returned.
-  String parseExternal(Arguments arguments) {
-    if (!lexer.parser.phrases.containsKey(content)) {
-      throw MissingKeyException('Could not parse external phrase', content);
-    }
-
-    final phrase = lexer.parser.phrases[content].toString();
-
-    if (!isExpression(phrase)) {
-      return phrase;
-    }
-
-    return parseExpression(arguments, phrase);
-  }
-
-  /// Resolves the expression, and returns the result.
-  String parseExpression(Arguments arguments, [String? phrase]) {
-    // Remove the surrounding brackets to leave just the content.
-    final phraseContent =
-        phrase != null ? phrase.substring(1, phrase.length - 1) : content;
-
-    final tokens = lexer.getTokens(phraseContent);
-
-    final controlVariable = tokens.removeAt(0).parse(arguments);
-    final choices = lexer.getChoices(tokens);
-
-    final matchedChoice =
-        choices.firstWhereOrNull((choice) => choice.isMatch(controlVariable));
-
-    if (matchedChoice != null) {
-      return lexer.parser.parse(matchedChoice.result, arguments);
-    }
-
-    throw ParserException(
-      'Could not parse expression',
-      "The control variable '$controlVariable' "
-          'does not match any choice defined inside the expression.',
-    );
-  }
-
-  /// Fetches the argument described by the parameter and returns its value.
-  String parseParameter(Arguments arguments) {
-    if (isInteger(content)) {
-      return parsePositionalParameter(arguments);
-    }
-
-    if (!arguments.named.containsKey(content)) {
-      throw ParserException(
-        'Could not parse a named parameter',
-        "An argument with the name '$content' hadn't been supplied to the "
-            'parser at the time of parsing the named parameter of the same '
-            'name.',
-      );
-    }
-
-    return arguments.named[content].toString();
-  }
-
-  /// Returns the parameter described by the index ([content]) of this `Token`.
-  String parsePositionalParameter(Arguments arguments) {
-    final index = int.parse(content);
-
-    if (index < 0) {
-      throw const ParserException(
-        'Could not parse a positional parameter',
-        'The index must not be negative.',
-      );
-    }
-
-    if (index >= arguments.positional.length) {
-      throw ParserException(
-        'Could not parse a positional parameter',
-        'Attempted to access an argument at position $index, but '
-            '${arguments.positional.length} argument(s) were supplied.',
-      );
-    }
-
-    return arguments.positional.elementAt(index).toString();
-  }
-
-  /// Returns this token's [content].
-  String parseText() => content;
-
-  /// Checks if [phrase] is an external phrase, which needs to be 'included' in
-  /// the main phrase.
-  bool isExternal(String phrase) =>
-      phrase.startsWith(Symbol.externalOpen.character) &&
-      phrase.endsWith(Symbol.externalOpen.character);
-
-  /// Checks if [phrase] is an expression, which needs to be 'included' in the
-  /// main phrase.
-  bool isExpression(String phrase) =>
-      phrase.startsWith(Symbol.expressionOpen.character) &&
-      phrase.endsWith(Symbol.expressionClosed.character);
-
-  /// Returns `true` if [target] is an integer.
-  bool isInteger(String target) => int.tryParse(target) != null;
+  const Token(this.type, this.content);
 }
 
 /// The type of a token which decides how the parser will parse and
@@ -161,25 +40,106 @@ enum TokenType {
   text,
 }
 
-/// Extension on `Iterable` providing a `firstWhereOrNull()` function that
-/// returns `null` if an element is not found, rather than throw `StateError`.
-extension NullSafeAccess<E> on Iterable<E> {
-  /// Returns the first element that satisfies the given predicate [test].
-  ///
-  /// If no elements satisfy [test], the result of invoking the [orElse]
-  /// function is returned.
-  ///
-  /// Unlike `Iterable.firstWhere()`, this function defaults to returning `null`
-  /// if an element is not found.
-  E? firstWhereOrNull(bool Function(E) test, {E Function()? orElse}) {
-    for (final element in this) {
-      if (test(element)) {
-        return element;
-      }
+/// Extracts a `List` of `Tokens` from [target].
+List<Token> getTokens(String target) {
+  final tokens = <Token>[];
+
+  // In order to break the string down correctly into tokens, the parser
+  // must see exactly where each symbol lies in the string.
+  final symbolsWithPositions = getSymbols(target);
+
+  // How deeply nested the current symbol being parsed is.
+  var nestingLevel = 0;
+  // Used for obtaining substrings of the subject string.
+  var lastSymbolPosition = 0;
+  // Used for obtaining substrings of choices.
+  var lastChoicePosition = 0;
+
+  // Iterate over symbols, finding and extracting tokens.
+  for (final symbolWithPosition in symbolsWithPositions) {
+    TokenType? tokenType;
+    String? content;
+
+    final symbol = symbolWithPosition.object;
+
+    switch (symbol) {
+      case Symbol.externalOpen:
+      case Symbol.expressionOpen:
+      case Symbol.parameterOpen:
+        tokenType = TokenType.text;
+
+        if (nestingLevel == 0 && lastChoicePosition == 0) {
+          final precedingString = target.substring(
+            lastSymbolPosition,
+            symbolWithPosition.position,
+          );
+          if (precedingString.isNotEmpty) {
+            content = precedingString;
+          }
+          lastSymbolPosition = symbolWithPosition.position + 1;
+        }
+
+        nestingLevel++;
+        break;
+      case Symbol.externalClosed:
+        tokenType = TokenType.external;
+        continue closed;
+      case Symbol.expressionClosed:
+        tokenType = TokenType.expression;
+        continue closed;
+      closed:
+      case Symbol.parameterClosed:
+        tokenType ??= TokenType.parameter;
+
+        if (nestingLevel == 1 && lastChoicePosition == 0) {
+          content = target.substring(
+            lastSymbolPosition,
+            symbolWithPosition.position,
+          );
+          lastSymbolPosition = symbolWithPosition.position + 1;
+        }
+
+        nestingLevel--;
+        break;
+      case Symbol.choiceIntroducer:
+        if (nestingLevel == 0 && lastChoicePosition == 0) {
+          lastChoicePosition = symbolWithPosition.position + 1;
+        }
+        break;
+      case Symbol.choiceSeparator:
+        tokenType = TokenType.choice;
+
+        if (nestingLevel == 0 && lastChoicePosition != 0) {
+          content = target
+              .substring(lastChoicePosition, symbolWithPosition.position)
+              .trim();
+          lastChoicePosition = symbolWithPosition.position + 1;
+        }
+        break;
+      case Symbol.endOfString:
+        if (lastSymbolPosition == target.length) {
+          break;
+        }
+
+        if (lastChoicePosition == 0) {
+          tokenType = TokenType.text;
+          content = target.substring(lastSymbolPosition);
+          break;
+        }
+
+        tokenType = TokenType.choice;
+        content = target.substring(lastChoicePosition).trim();
+        break;
+      case Symbol.choiceResultDivider:
+      case Symbol.argumentOpen:
+      case Symbol.argumentClosed:
+        break;
     }
-    if (orElse != null) {
-      return orElse();
+
+    if (tokenType != null && content != null) {
+      tokens.add(Token(tokenType, content));
     }
-    return null;
   }
+
+  return tokens;
 }

@@ -70,3 +70,20 @@ class WithPosition<T> {
   /// [position] relative to its parent object.
   const WithPosition(this.object, this.position);
 }
+
+/// Extracts a `List` of `Symbols` from [target].
+List<WithPosition<Symbol>> getSymbols(String target) {
+  final symbols = <WithPosition<Symbol>>[];
+
+  for (var position = 0; position < target.length; position++) {
+    final symbol = Symbol.fromCharacter(target[position]);
+
+    if (symbol != null) {
+      symbols.add(WithPosition(symbol, position));
+    }
+  }
+
+  symbols.add(WithPosition(Symbol.endOfString, target.length - 1));
+
+  return symbols;
+}
