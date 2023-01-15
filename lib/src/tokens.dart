@@ -1,8 +1,4 @@
-import 'package:text_expressions/src/choices.dart';
-import 'package:text_expressions/src/exceptions.dart';
-import 'package:text_expressions/src/parser.dart';
 import 'package:text_expressions/src/symbols.dart';
-import 'package:text_expressions/src/utils.dart';
 
 /// A representation of a part of a string which needs different handling
 /// of [content] based on its [type].
