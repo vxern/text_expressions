@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-import 'package:text_expressions/src/utils.dart';
+import 'package:text_expressions/text_expressions.dart';
 
 const elements = ['a', 'b', 'c'];
 

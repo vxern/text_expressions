@@ -3,3 +3,4 @@
 library text_expressions;
 
 export 'src/parser.dart';
+export 'src/utils.dart' show FirstWhereOrNull;
