@@ -47,7 +47,7 @@ class Parser {
   /// Takes [phrase], tokenises it, parses each `Token` and returns the
   /// accumulation of the parsed tokens as a string.
   String _process(String phrase, Arguments arguments) =>
-      getTokens(phrase).map((token) => _process(phrase, arguments)).join();
+      getTokens(phrase).map((token) => _processToken(token, arguments)).join();
 
   /// Taking a [token] and an [arguments] object, processes the [token] and
   /// returns the produced `String`.
