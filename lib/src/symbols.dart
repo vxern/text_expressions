@@ -1,5 +1,11 @@
 /// Enumerator representation of characters used in tokenising a string.
 enum Symbol {
+  /// Opening bracket of a parameter designator.
+  parameterOpen('{'),
+
+  /// Closing bracket of a parameter designator.
+  parameterClosed('}'),
+
   /// Opening bracket of an external phrase.
   externalOpen('<'),
 
@@ -11,12 +17,6 @@ enum Symbol {
 
   /// Closing bracket of an expression.
   expressionClosed(']'),
-
-  /// Opening bracket of a parameter designator.
-  parameterOpen('{'),
-
-  /// Closing bracket of a parameter designator.
-  parameterClosed('}'),
 
   /// Separates the control variable and the choices inside an expression.
   choiceIntroducer('~'),

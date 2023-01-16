@@ -53,87 +53,86 @@ List<Token> getTokens(String target) {
 
   // Iterate over symbols, finding and extracting tokens.
   for (final symbolWithPosition in symbolsWithPositions) {
-    TokenType? tokenType;
-    String? content;
-
     final symbol = symbolWithPosition.object;
+    final position = symbolWithPosition.position;
 
     switch (symbol) {
+      case Symbol.argumentOpen:
+      case Symbol.argumentClosed:
+        break;
+
+      case Symbol.parameterOpen:
       case Symbol.externalOpen:
       case Symbol.expressionOpen:
-      case Symbol.parameterOpen:
-        tokenType = TokenType.text;
-
         if (nestingLevel == 0 && lastChoicePosition == 0) {
           final precedingString = target.substring(
             lastSymbolPosition,
-            symbolWithPosition.position,
+            position,
           );
           if (precedingString.isNotEmpty) {
-            content = precedingString;
+            tokens.add(Token(TokenType.text, precedingString));
           }
-          lastSymbolPosition = symbolWithPosition.position + 1;
+          lastSymbolPosition = position + 1;
         }
 
         nestingLevel++;
         break;
-      case Symbol.externalClosed:
-        tokenType = TokenType.external;
-        continue closed;
-      case Symbol.expressionClosed:
-        tokenType = TokenType.expression;
-        continue closed;
-      closed:
-      case Symbol.parameterClosed:
-        tokenType ??= TokenType.parameter;
 
+      case Symbol.parameterClosed:
+      case Symbol.externalClosed:
+      case Symbol.expressionClosed:
         if (nestingLevel == 1 && lastChoicePosition == 0) {
-          content = target.substring(
-            lastSymbolPosition,
-            symbolWithPosition.position,
+          tokens.add(
+            Token(
+              symbol == Symbol.parameterClosed
+                  ? TokenType.parameter
+                  : symbol == Symbol.externalClosed
+                      ? TokenType.external
+                      : TokenType.expression,
+              target.substring(lastSymbolPosition, position),
+            ),
           );
-          lastSymbolPosition = symbolWithPosition.position + 1;
+          lastSymbolPosition = position + 1;
         }
 
         nestingLevel--;
         break;
+
       case Symbol.choiceIntroducer:
         if (nestingLevel == 0 && lastChoicePosition == 0) {
-          lastChoicePosition = symbolWithPosition.position + 1;
+          lastChoicePosition = position + 1;
         }
         break;
       case Symbol.choiceSeparator:
-        tokenType = TokenType.choice;
-
         if (nestingLevel == 0 && lastChoicePosition != 0) {
-          content = target
-              .substring(lastChoicePosition, symbolWithPosition.position)
-              .trim();
-          lastChoicePosition = symbolWithPosition.position + 1;
+          tokens.add(
+            Token(
+              TokenType.choice,
+              target.substring(lastChoicePosition, position).trim(),
+            ),
+          );
+          lastChoicePosition = position + 1;
         }
         break;
+      case Symbol.choiceResultDivider:
+        break;
+
       case Symbol.endOfString:
         if (lastSymbolPosition == target.length) {
           break;
         }
 
         if (lastChoicePosition == 0) {
-          tokenType = TokenType.text;
-          content = target.substring(lastSymbolPosition);
+          tokens.add(
+            Token(TokenType.text, target.substring(lastSymbolPosition)),
+          );
           break;
         }
 
-        tokenType = TokenType.choice;
-        content = target.substring(lastChoicePosition).trim();
+        tokens.add(
+          Token(TokenType.choice, target.substring(lastChoicePosition).trim()),
+        );
         break;
-      case Symbol.choiceResultDivider:
-      case Symbol.argumentOpen:
-      case Symbol.argumentClosed:
-        break;
-    }
-
-    if (tokenType != null && content != null) {
-      tokens.add(Token(tokenType, content));
     }
   }
 
