@@ -1,7 +1,6 @@
-/// Extension with a superior implementation of the problematic
-/// `Iterable.firstWhere()` method, which defaults to throwing a `StateError`
-/// if an element is not found, rather than returning `null`.
-extension NullSafety<E> on Iterable<E> {
+/// Extension on `Iterable` providing a `firstWhereOrNull()` function that
+/// returns `null` if an element is not found, rather than throw `StateError`.
+extension NullSafeAccess<E> on Iterable<E> {
   /// Returns the first element that satisfies the given predicate [test].
   ///
   /// If no elements satisfy [test], the result of invoking the [orElse]

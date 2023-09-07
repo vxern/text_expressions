@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [The Syntax](#the-syntax)
-- [Case Operations](#case-operations)
+- [Case Matchers](#case-matchers)
 
 ## The Syntax
 
@@ -45,34 +45,34 @@ expressions small and understandable.
 
 `[{temperature} ~ Lesser(15):Too cold./Lesser(30):Temperate./Default:It's too hot!]`
 
-### Case Operations
+### Case Matchers
 
-The parser supports several comparison operations, which can be used to match a
-parameter to a case.
+The parser supports several case matchers, which can be used to match the
+control variable to an argument.
 
-String-exclusive operations:
+String-exclusive matchers:
 
 - `StartsWith`
 - `EndsWith`
 - `Contains`
 
-Indifferent operations:
+Indifferent matchers:
 
 - `Equals` *
-- `In`
-- `NotIn`
-- `InRange`
-- `NotInRange`
+- `IsIn`
+- `IsNotIn`
+- `IsInRange`
+- `IsNotInRange`
 
-Number-exclusive operations:
+Number-exclusive matchers:
 
-- `Greater`
-- `GreaterOrEqual`
-- `Lesser`
-- `LesserOrEqual`
+- `IsGreater`
+- `IsGreaterOrEqual`
+- `IsLesser`
+- `IsLesserOrEqual`
 
 Other:
 
-- `Default`
+- `Always`
 
-* If no operation has been defined, the operation will default to 'Equals'
+* If no matcher has been defined, the matcher will default to 'Equals'

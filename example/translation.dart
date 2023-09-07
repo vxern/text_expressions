@@ -6,7 +6,7 @@ import 'utils.dart';
 /// the given key.
 class Translation {
   /// The parser utilised by the translation service.
-  final Parser parser = Parser(quietMode: false);
+  final Parser parser = Parser();
 
   /// Load the strings corresponding to the language code provided.
   void load(Language language) => parser.load(
@@ -21,7 +21,7 @@ class Translation {
     Map<String, Object> named = const <String, Object>{},
     Set<Object> positional = const <Object>{},
   }) =>
-      parser.parseKey(key, named: named, positional: positional);
+      parser.process(key, named: named, positional: positional);
 }
 
 enum Language { english, polish, romanian }
